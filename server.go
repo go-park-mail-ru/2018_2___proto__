@@ -24,9 +24,12 @@ type ServerHandler struct {
 
 func BuildServer(cfg *ServerConfig) *iris.Application {
 	//change later
-	serv := &ServerHandler{cfg, new(MapAuthorizer)}
-	app := iris.New()
+	serv := &ServerHandler{
+		cfg:        cfg,
+		authorizer: NewMapAuthorizer(),
+	}
 
+	app := iris.New()
 	app.Logger().SetLevel(cfg.LogLevel)
 	app.Use(logger.New())
 	app.Use(recover.New())
