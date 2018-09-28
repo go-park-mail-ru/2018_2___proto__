@@ -1,43 +1,27 @@
 package main
 
-const (
-	AuthFailureError    = 1
-	RequestParsingError = 2
+type UserFull struct {
+	Id       int32  `json:"id,omitempty"`
+	Nickname string `json:"nickname"`
+	Password string `json:"password,omitempty"`
+	Email    string `json:"email,omitempty"`
+	Fullname string `json:"fullname,omitempty"`
+}
 
-	DefaultTokenDuration = 8600
-)
+type ScoreRecord struct {
+	Id       int32
+	Score    int32  `json:"score"`
+	Nickname string `json:"nickname"`
+}
 
-type User struct {
-	Login    string `json:"login"`
-	Password string `json:"pass"`
+type Session struct {
+	Id string `json:"id"`
+
+	//time to live сколько сессия еще будет жить
+	TTL int32 `json:"ttl"`
 }
 
 type Error struct {
 	Code    int32  `json:"code"`
-	Message string `json:"message"`
-}
-
-type Token struct {
-	Value       string `json:"value"`
-	ExpiredDate int32  `json:"expiredat"`
-}
-
-type Response struct {
-	Status bool   `json:"status"`
-	Token  *Token `json:"token,omitempty"`
-	Error  *Error `json:"error,omitempty"`
-}
-
-func NewToken(value string, expiredDate int32) *Token {
-	return &Token{
-		Value:       value,
-		ExpiredDate: expiredDate,
-	}
-}
-
-func NewError(code int32, msg string) *Error {
-	return &Error{
-		Code:    code,
-		Message: msg,
-	}
+	Message string `json:"msg"`
 }

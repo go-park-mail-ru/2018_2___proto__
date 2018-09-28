@@ -1,15 +1,11 @@
 package main
 
-import (
-	"github.com/kataras/iris"
-)
+//просто проверяю, что интерфейс полностью реализован, потом уберу
+func test(ctx IContext) {
+
+}
 
 func main() {
-	cfg, err := LoadConfigs("./cfg.json")
-	if err != nil {
-		panic("cfg file not found")
-	}
-
-	app := BuildServer(cfg)
-	app.Run(iris.Addr(cfg.ServerPort))
+	c := NewContext(nil, nil)
+	test(c)
 }
