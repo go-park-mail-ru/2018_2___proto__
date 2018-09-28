@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 )
 
+//это конфиги для старой сборки сервера, нужно буддет потом структуру поменять
 type ServerConfig struct {
 	IndexPage      string `json:"indexpage"`
 	StaticFilesUrl string `json:"staticfilesurl"`
