@@ -37,6 +37,10 @@ func (r *Router) AddHandlerDelete(urlPattern string, h HandlerFunc) {
 	r.addHandlerFull(urlPattern, h, http.MethodDelete)
 }
 
+func (r *Router) AddHandlerPut(urlPattern string, h HandlerFunc) {
+	r.addHandlerFull(urlPattern, h, http.MethodPut)
+}
+
 func (r *Router) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 	ctx := NewContext(writer, req)
 
@@ -47,5 +51,5 @@ func (r *Router) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	//если не один хэндлер не отработал, то возвращаем 404
-	ctx.Status(http.StatusNotFound)
+	ctx.StatusCode(http.StatusNotFound)
 }

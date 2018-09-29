@@ -5,21 +5,15 @@ import (
 	"proto-game-server/router"
 )
 
-func DefHandler(ctxrouter.IContext) {
-	ctx.Write([]byte("IT'S ALIIIIIVEEEE!"))
-	vars := ctx.UrlParams()
-
-	ctx.Write([]byte(vars["id"]))
-}
-
-func HelloHandler(ctxrouter.IContext) {
-	ctx.Write([]byte("HELLO"))
-}
-
 func main() {
 	router := router.NewRouter()
-	router.AddHandler("/user/{id}", DefHandler)
-	router.AddHandler("/test/asd/asd", HelloHandler)
+	apiHandler := NewApiHandler()
+
+	//урлы должны быть отсортированы по длине урла по убыванию потом жобавлю это программно
+	router.AddHandlerGet("/user/{slug}", apiHandler.AuthMiddleware(apiHandler.GetUser))
+	router.AddHandlerPost("/user", apiHandler.AddUser)
+	router.AddHandlerDelete("/user", apiHandler.DeleteUser)
+	router.AddHandlerPut("/user", apiHandler.AuthMiddleware(apiHandler.UpdateUser))
 
 	http.ListenAndServe(":8080", router)
 }

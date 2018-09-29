@@ -72,7 +72,9 @@ type IContext interface {
 	//можно использовать для фильтрации запросов по типу
 	Method() string
 
-	Status(code int)
+	StatusCode(code int)
+
+	ContentType(content string)
 }
 
 type Context struct {
@@ -235,7 +237,7 @@ func (c *Context) Method() string {
 	return c.r.Method
 }
 
-func (c *Context) Status(code int) {
+func (c *Context) StatusCode(code int) {
 	c.w.WriteHeader(code)
 }
 
@@ -245,4 +247,8 @@ func (c *Context) UrlParams() map[string]string {
 
 func (c *Context) SetApiParser(parser IApiUrlParser) {
 	c.apiUrlParser = parser
+}
+
+func (c *Context) ContentType(cType string) {
+	c.w.Header().Set("Content-Type", cType) 
 }

@@ -1,15 +1,11 @@
 package router
 
-import (
-	"net/http"
-)
-
 const (
 	absoluteHttpMethod = "*"
 )
 
 type IHandler interface {
-	Handle(ctx IContext)
+	Handle(ctx IContext) bool
 }
 
 type HandlerFunc func(ctx IContext)
@@ -24,11 +20,13 @@ func NewFilteringHandler(h HandlerFunc, method string) *FilteringHandler {
 	return &FilteringHandler{h, method}
 }
 
-func (h *FilteringHandler) Handle(ctx IContext) {
+//с bool Это временный костыль, который я позже исправлю
+//лучше использовать мапу слайсов хэндлеров в роутере а не этот ГОвнокод
+func (h *FilteringHandler) Handle(ctx IContext) bool{
 	if h.httpMethod == absoluteHttpMethod || h.httpMethod == ctx.Method() {
 		h.handler(ctx)
+		return true
 	}
 
-	//если метод не прошел фильтрацию, то 404
-	ctx.Status(http.StatusNotFound)
+	return false
 }

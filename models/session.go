@@ -5,4 +5,6 @@ type Session struct {
 
 	//time to live сколько сессия еще будет жить
 	TTL int32 `json:"ttl"`
+
+	User *User
 }

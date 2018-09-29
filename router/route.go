@@ -29,6 +29,5 @@ func (r *Route) TryHandle(ctx IContext) bool {
 	//не придумал, как это лучше организовать, поэтому парсер назначается тут
 	//внутри обработчика можно вызывать парс
 	ctx.SetApiParser(r.parser)
-	r.handler.Handle(ctx)
-	return true
+	return r.handler.Handle(ctx)
 }
