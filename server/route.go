@@ -1,16 +1,12 @@
 package server
 
-import (
-	"net/http"
-)
-
 type Route struct {
 	matcher IApiUrlMatcher
-	parser IApiUrlParser
+	parser  IApiUrlParser
 	handler IHandler
 }
 
-func newDefaultRoute(url string, handler HandlerFunc, method string) (*Route, error) {
+func NewDefaultRoute(url string, handler HandlerFunc, method string) (*Route, error) {
 	route := new(Route)
 
 	matcher, err := NewApiUrlParser(url)
@@ -24,26 +20,6 @@ func newDefaultRoute(url string, handler HandlerFunc, method string) (*Route, er
 	return route, nil
 }
 
-func NewDefaultRoute(url string, handler HandlerFunc) (*Route, error) {
-	return newDefaultRoute(url, handler, absoluteHttpMethod)
-}
-
-func NewDefaultRouteGet(url string, handler HandlerFunc) (*Route, error) {
-	return newDefaultRoute(url, handler, http.MethodGet)
-}
-
-func NewDefaultRoutePost(url string, handler HandlerFunc) (*Route, error) {
-	return newDefaultRoute(url, handler, http.MethodPost)
-}
-
-func NewDefaultRoutePut(url string, handler HandlerFunc) (*Route, error) {
-	return newDefaultRoute(url, handler, http.MethodPut)
-}
-
-func NewDefaultRouteDelete(url string, handler HandlerFunc) (*Route, error) {
-	return newDefaultRoute(url, handler, http.MethodDelete)
-}
-
 //если дорога правильная, то возвращается true
 func (r *Route) TryHandle(ctx IContext) bool {
 	if !r.matcher.Match(ctx.RequestURI()) {
@@ -51,7 +27,7 @@ func (r *Route) TryHandle(ctx IContext) bool {
 	}
 
 	//не придумал, как это лучше организовать, поэтому парсер назначается тут
-	//внутри обработчика можно вызывать парс 
+	//внутри обработчика можно вызывать парс
 	ctx.SetApiParser(r.parser)
 	r.handler.Handle(ctx)
 	return true

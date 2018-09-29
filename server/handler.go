@@ -29,5 +29,6 @@ func (h *FilteringHandler) Handle(ctx IContext) {
 		h.handler(ctx)
 	}
 
+	//если метод не прошел фильтрацию, то 404
 	ctx.Status(http.StatusNotFound)
 }

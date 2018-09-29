@@ -82,7 +82,7 @@ type Context struct {
 	w            http.ResponseWriter
 }
 
-func NewContext(r *http.Request, w http.ResponseWriter) *Context {
+func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	return &Context{
 		contextData: make(map[string]interface{}),
 		r:           r,
