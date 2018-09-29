@@ -1,8 +1,8 @@
 package tests
 
 import (
+	"proto-game-server/router"
 	"reflect"
-	"proto-game-server/server"
 	"testing"
 )
 
@@ -13,8 +13,8 @@ type PatternCase struct {
 
 type ParseCase struct {
 	pattern string
-	url    string
-	values map[string]string
+	url     string
+	values  map[string]string
 }
 
 func TestPattern(t *testing.T) {
@@ -30,7 +30,7 @@ func TestPattern(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		parser, err := server.NewApiUrlParser(c.inputPattern)
+		parser, err := router.NewApiUrlParser(c.inputPattern)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -43,26 +43,26 @@ func TestPattern(t *testing.T) {
 }
 
 func TestParsing(t *testing.T) {
-	cases := []ParseCase {
+	cases := []ParseCase{
 		{
 			"/user/{id}",
 			"/user/2",
-			map[string]string {
+			map[string]string{
 				"id": "2",
 			},
 		},
 		{
 			"/user/{id}/value/{v}",
 			"/user/42/value/ctulhu",
-			map[string]string {
+			map[string]string{
 				"id": "42",
-				"v": "ctulhu",
+				"v":  "ctulhu",
 			},
 		},
 	}
 
 	for _, c := range cases {
-		parser, err := server.NewApiUrlParser(c.pattern)
+		parser, err := router.NewApiUrlParser(c.pattern)
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -1,4 +1,4 @@
-package server
+package router
 
 import (
 	"net/http"
@@ -18,7 +18,7 @@ func (r *Router) addHandlerFull(urlPattern string, h HandlerFunc, httpMethod str
 		panic(err)
 	}
 
-	r.routes = append(r.routes, route)	
+	r.routes = append(r.routes, route)
 }
 
 func (r *Router) AddHandler(urlPattern string, h HandlerFunc) {

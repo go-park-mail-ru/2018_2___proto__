@@ -1,4 +1,4 @@
-package server
+package router
 
 import (
 	"encoding/json"
@@ -42,7 +42,7 @@ type IContext interface {
 
 	QueryParamInt(key string) (int, error)
 
-	//возвращает все параметры из api урлы 
+	//возвращает все параметры из api урлы
 	//тип урлы /user/2
 	UrlParams() map[string]string
 

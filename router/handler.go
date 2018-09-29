@@ -1,4 +1,4 @@
-package server
+package router
 
 import (
 	"net/http"
@@ -16,7 +16,7 @@ type HandlerFunc func(ctx IContext)
 
 //обработчик, который фильтрует выполнение запроса по его методу
 type FilteringHandler struct {
-	handler HandlerFunc
+	handler    HandlerFunc
 	httpMethod string
 }
 
