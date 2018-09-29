@@ -34,31 +34,52 @@ type IContext interface {
 
 	RequestURI() string
 
-	URLParamDefault(key string, def string) string
+	//возвращает параметры запроса из урлы (/user?id=12&var=val) по имени
+	//если отсутствует параметр, то возвращает дефолтное значение
+	QueryParamDefault(key string, def string) string
 
-	URLParam(key string) string
+	QueryParam(key string) string
 
-	URLParamInt(key string) (int, error)
+	QueryParamInt(key string) (int, error)
 
-	form() (map[string][]string, bool)
+	//возвращает все параметры из api урлы 
+	//тип урлы /user/2
+	UrlParams() map[string]string
 
+	SetApiParser(parser IApiUrlParser)
+
+	//парсит тело запроса и вовращает все найденные параметры
+	Form() (map[string][]string, bool)
+
+	//возвращает параметр из тела запроса по имени
+	//если параметр с таким иеменем отсутствует, то возвращает дефолтное значение
 	PostParamDefault(key string, def string) string
 
 	PostParam(key string) string
 
 	PostParamInt(key string) (int, error)
 
+	//возвращает данные, которые хранятся в контексте
+	//можно храить любые типы, но придется кастовать их
+	//будет полезно, если нужно передать по конвейеру http запроса какие-нибудь данные
 	CtxParam(key string) (interface{}, bool)
 
 	GetCookie(key string) (*http.Cookie, error)
 
 	SetCookie(cookie *http.Cookie)
+
+	//возвращает метод запроса
+	//можно использовать для фильтрации запросов по типу
+	Method() string
+
+	Status(code int)
 }
 
 type Context struct {
-	contextData map[string]interface{}
-	r           *http.Request
-	w           http.ResponseWriter
+	contextData  map[string]interface{}
+	apiUrlParser IApiUrlParser
+	r            *http.Request
+	w            http.ResponseWriter
 }
 
 func NewContext(r *http.Request, w http.ResponseWriter) *Context {
@@ -116,7 +137,7 @@ func (c *Context) RequestURI() string {
 	return c.r.RequestURI
 }
 
-func (c *Context) URLParamDefault(key string, def string) string {
+func (c *Context) QueryParamDefault(key string, def string) string {
 	if value := c.r.URL.Query().Get(key); value != def {
 		return value
 	}
@@ -124,12 +145,12 @@ func (c *Context) URLParamDefault(key string, def string) string {
 	return def
 }
 
-func (c *Context) URLParam(key string) string {
-	return c.URLParamDefault(key, defaultQueryParam)
+func (c *Context) QueryParam(key string) string {
+	return c.QueryParamDefault(key, defaultQueryParam)
 }
 
-func (c *Context) URLParamInt(key string) (int, error) {
-	value := c.URLParam(key)
+func (c *Context) QueryParamInt(key string) (int, error) {
+	value := c.QueryParam(key)
 
 	if value != defaultQueryParam {
 		param, err := strconv.Atoi(value)
@@ -143,7 +164,7 @@ func (c *Context) URLParamInt(key string) (int, error) {
 	return defaultQueryIntParam, errors.New("URL Param not found")
 }
 
-func (c *Context) form() (map[string][]string, bool) {
+func (c *Context) Form() (map[string][]string, bool) {
 	c.r.ParseMultipartForm(maxPostMemmory)
 
 	/*if form := c.r.Form; len(form) > 0 {
@@ -164,7 +185,7 @@ func (c *Context) form() (map[string][]string, bool) {
 }
 
 func (c *Context) PostParamDefault(key string, def string) string {
-	form, exist := c.form()
+	form, exist := c.Form()
 	if !exist {
 		return def
 	}
@@ -208,4 +229,20 @@ func (c *Context) GetCookie(key string) (*http.Cookie, error) {
 
 func (c *Context) SetCookie(cookie *http.Cookie) {
 	c.r.AddCookie(cookie)
+}
+
+func (c *Context) Method() string {
+	return c.r.Method
+}
+
+func (c *Context) Status(code int) {
+	c.w.WriteHeader(code)
+}
+
+func (c *Context) UrlParams() map[string]string {
+	return c.apiUrlParser.Parse(c.r.URL.Path)
+}
+
+func (c *Context) SetApiParser(parser IApiUrlParser) {
+	c.apiUrlParser = parser
 }
