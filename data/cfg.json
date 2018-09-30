@@ -1,0 +1,7 @@
+{
+    "indexpage": "/views/index.html",
+	"staticfilesurl": "",
+	"staticfilesdir": "./assets/",
+	"serverport": ":8080",
+	"loglevel": "debug"
+}
