@@ -1,12 +1,14 @@
 package router
 
+type HandlerFunc func(ctx IContext)
+
 type Route struct {
 	matcher IApiUrlMatcher
 	parser  IApiUrlParser
-	handler IHandler
+	handler HandlerFunc
 }
 
-func NewDefaultRoute(url string, handler HandlerFunc, method string) (*Route, error) {
+func NewDefaultRoute(url string, handler HandlerFunc) (*Route, error) {
 	route := new(Route)
 
 	matcher, err := NewApiUrlParser(url)
@@ -16,18 +18,15 @@ func NewDefaultRoute(url string, handler HandlerFunc, method string) (*Route, er
 
 	route.parser = matcher
 	route.matcher = matcher
-	route.handler = NewFilteringHandler(handler, method)
+	route.handler = handler
 	return route, nil
 }
 
-//если дорога правильная, то возвращается true
-func (r *Route) TryHandle(ctx IContext) bool {
-	if !r.matcher.Match(ctx.RequestURI()) {
-		return false
-	}
+func (r *Route) Match(ctx IContext) bool {
+	return r.matcher.Match(ctx.RequestURI())
+}
 
-	//не придумал, как это лучше организовать, поэтому парсер назначается тут
-	//внутри обработчика можно вызывать парс
+func (r *Route) Handle(ctx IContext) {
 	ctx.SetApiParser(r.parser)
-	return r.handler.Handle(ctx)
+	r.handler(ctx)
 }
