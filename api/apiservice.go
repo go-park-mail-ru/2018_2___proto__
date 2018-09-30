@@ -18,7 +18,7 @@ func NewApiService(connector string, connection string) (*ApiService, error) {
 
 	service := &ApiService {
 		Users: NewUserStorage(db),
-		Sessions: NewSessionStorage(),
+		Sessions: NewSessionStorage(db),
 	}
 
 	return service, nil

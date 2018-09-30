@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	m "proto-game-server/models"
 )
 
@@ -19,12 +20,13 @@ type ISessionStorage interface {
 }
 
 type SessionStorage struct {
+	db *sql.DB
 }
 
 //нужно реализовать
-func NewSessionStorage() *SessionStorage {
+func NewSessionStorage(db *sql.DB) *SessionStorage {
 	//тут должна проходить инициализация хранилища сессий
-	return &SessionStorage{}
+	return &SessionStorage{db: db}
 }
 
 //выдача куки при авторизации
