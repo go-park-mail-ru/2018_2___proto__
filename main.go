@@ -6,14 +6,19 @@ import (
 )
 
 func main() {
+	cfg, err := LoadConfigs("./data/cfg.json")
+	if err != nil {
+		panic(err)
+	}
+
 	router := router.NewRouter()
-	apiHandler := NewApiHandler()
+	apiHandler := NewApiHandler(cfg)
 
 	//урлы должны быть отсортированы по длине урла по убыванию потом жобавлю это программно
-	router.AddHandlerGet("/user/{slug}", apiHandler.AuthMiddleware(apiHandler.GetUser))
-	router.AddHandlerPost("/user/register", apiHandler.AddUser)
-	router.AddHandlerDelete("/user", apiHandler.DeleteUser)
-	router.AddHandlerPut("/user", apiHandler.AuthMiddleware(apiHandler.UpdateUser))
+	router.AddHandlerGet("/user/{slug}", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.GetUser)))
+	router.AddHandlerPost("/user/register", apiHandler.CorsEnableMiddleware(apiHandler.AddUser))
+	router.AddHandlerDelete("/user", apiHandler.CorsEnableMiddleware(apiHandler.DeleteUser))
+	router.AddHandlerPut("/user", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.UpdateUser)))
 
 	http.ListenAndServe(":8080", router)
 }
