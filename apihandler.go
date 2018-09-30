@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strconv"
 	"net/http"
 	"encoding/json"
 	"log"
@@ -77,6 +78,19 @@ func (h *ApiHandler) GetUser(ctx router.IContext) {
 	WriteResponse(h.apiService.Users.Get(params["slug"]), ctx)
 }
 
+func (h *ApiHandler) GetLeaders(ctx router.IContext) {
+	params := ctx.UrlParams()
+
+	offset, offsetErr := strconv.Atoi(params["offset"])
+	limit, limitErr := strconv.Atoi(params["limit"])
+
+	if offsetErr != nil || limitErr != nil {
+		WriteResponse(&api.ApiResponse{http.StatusBadRequest, ""}, ctx)
+	}
+
+	WriteResponse(h.apiService.Scores.Get(offset, limit), ctx)
+}
+
 //миддлварь для аутентификации
 //обязательно нужно реализовать
 func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc {
@@ -121,7 +135,7 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 	//хранилище создают сессию и возвращает нам ид сессии, который записывам в куки
 	sessionId, ok := h.apiService.Sessions.Create(user)
 	if !ok {
-		WriteResponse(&api.ApiResponse{Code: 401, Response: &m.Error{401, "wrong login or password"}}, ctx)
+		WriteResponse(&api.ApiResponse{Code: http.StatusBadRequest, Response: &m.Error{http.StatusBadRequest, "wrong login or password"}}, ctx)
 		return
 	}
 

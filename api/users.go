@@ -28,11 +28,13 @@ func (u *UserStorage) Add(user *m.User) *ApiResponse {
 	_, err := u.db.Exec(
 		"INSERT INTO user(nickname, password, email, fullname) VALUES ($1,$2,$3,$4);",
 		user.Nickname, user.Password, user.Email, user.Fullname)
+
 	if err != nil {
 		return &ApiResponse{
 			Code:     409,
 			Response: &m.Error{Code: 409, Message: err.Error()}}
 	}
+	
 	return &ApiResponse{Code: 201}
 }
 

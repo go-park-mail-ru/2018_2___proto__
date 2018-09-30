@@ -8,6 +8,7 @@ import (
 type ApiService struct {
 	Users    IUserStorage
 	Sessions ISessionStorage
+	Scores   IScoreStorage
 }
 
 func NewApiService(connector string, connection string) (*ApiService, error) {
@@ -16,9 +17,10 @@ func NewApiService(connector string, connection string) (*ApiService, error) {
 		return nil, err
 	}
 
-	service := &ApiService {
-		Users: NewUserStorage(db),
+	service := &ApiService{
+		Users:    NewUserStorage(db),
 		Sessions: NewSessionStorage(db),
+		Scores:   NewScoreStorage(db),
 	}
 
 	return service, nil
