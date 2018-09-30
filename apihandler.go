@@ -1,13 +1,13 @@
 package main
 
 import (
-	"strconv"
-	"net/http"
 	"encoding/json"
 	"log"
+	"net/http"
 	"proto-game-server/api"
 	m "proto-game-server/models"
 	"proto-game-server/router"
+	"strconv"
 )
 
 const (
@@ -16,7 +16,7 @@ const (
 
 //посредник между сетью и логикой апи
 type ApiHandler struct {
-	apiService *api.ApiService
+	apiService      *api.ApiService
 	corsAllowedHost string
 }
 
@@ -28,7 +28,7 @@ func NewApiHandler(settings *ServerConfig) *ApiHandler {
 	}
 
 	return &ApiHandler{
-		apiService: service,
+		apiService:      service,
 		corsAllowedHost: settings.CorsAllowedHost,
 	}
 }
@@ -120,7 +120,7 @@ func (h *ApiHandler) CorsEnableMiddleware(next router.HandlerFunc) router.Handle
 	return func(ctx router.IContext) {
 		ctx.Header("Access-Control-Allow-Origin", h.corsAllowedHost)
 		ctx.Header("Access-Control-Allow-Credentials", "true")
-		
+
 		next(ctx)
 	}
 }
@@ -141,6 +141,6 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 
 	//записываем ид сессии в куки
 	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище
-	ctx.SetCookie(&http.Cookie{Name: cookieSessionIdName,Value:sessionId})
+	ctx.SetCookie(&http.Cookie{Name: cookieSessionIdName, Value: sessionId})
 	ctx.StatusCode(http.StatusOK)
 }
