@@ -1,5 +1,5 @@
 {
     "dbconnector": "sqlite3",
-    "connectionstring": "proto.db",
+    "connectionstring": "./data/proto.db",
     "corsallowedhost": "http://localhost:3000"
 }
