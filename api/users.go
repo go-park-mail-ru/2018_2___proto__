@@ -25,7 +25,15 @@ func NewUserStorage(db *sql.DB) *UserStorage {
 
 //обязательно нужно реализовать
 func (u *UserStorage) Add(user *m.User) *ApiResponse {
-	return &ApiResponse{Code: 400, Response: &m.Error{1, "unimplemented api"}}
+	_, err := u.db.Exec(
+		"INSERT INTO user(nickname, password, email, fullname) VALUES ($1,$2,$3,$4);",
+		user.Nickname, user.Password, user.Email, user.Fullname)
+	if err != nil {
+		return &ApiResponse{
+			Code:     409,
+			Response: &m.Error{Code: 409, Message: err.Error()}}
+	}
+	return &ApiResponse{Code: 201}
 }
 
 func (u *UserStorage) Remove(user *m.User) *ApiResponse {
