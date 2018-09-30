@@ -26,7 +26,7 @@ func NewUserStorage(db *sql.DB) *UserStorage {
 //обязательно нужно реализовать
 func (u *UserStorage) Add(user *m.User) *ApiResponse {
 	_, err := u.db.Exec(
-		"INSERT INTO user(nickname, password, email, fullname) VALUES (\"$1\",\"$2\",\"$3\",\"$4\");",
+		"INSERT INTO user(nickname, password, email, fullname) VALUES ($1,$2,$3,$4);",
 		user.Nickname, user.Password, user.Email, user.Fullname)
 	if err != nil {
 		return &ApiResponse{
