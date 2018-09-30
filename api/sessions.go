@@ -11,7 +11,7 @@ import (
 type ISessionStorage interface {
 	//создает сессию для пользователя
 	//использовать для авторизации
-	Create(user *m.User) (string, bool, string)
+	Create(user *m.User) (string, bool)
 
 	//уничтожает сессиию
 	//использовать при выходе из системы
@@ -34,12 +34,12 @@ func NewSessionStorage(db *sql.DB) *SessionStorage {
 
 //выдача куки при авторизации
 
-func (s *SessionStorage) Create(user *m.User) (string, bool, string) {
+func (s *SessionStorage) Create(user *m.User) (string, bool) {
 	row, err := s.db.Query("SELECT password FROM user WHERE nickname=$1", user.Nickname)
 
 	if err != nil {
 		log.Fatal(err)
-		return "", false, err.Error()
+		return "", false
 	}
 	defer row.Close()
 
@@ -48,27 +48,27 @@ func (s *SessionStorage) Create(user *m.User) (string, bool, string) {
 		err = row.Scan(&expectedPassword)
 		if err = row.Err(); err != nil {
 			log.Fatal(err)
-			return "", false, err.Error()
+			return "", false
 		}
 	}
 
 	if err != nil {
 		log.Fatal(err)
-		return "", false, err.Error()
+		return "", false
 	}
 
 	if expectedPassword != user.Password {
-		return "", false, "Incorrect password or username"
+		return "", false
 	}
 
 	UUID, err := uuid.NewV4()
 	if err != nil {
 		log.Fatal(err)
-		return "", false, err.Error()
+		return "", false
 	}
 	sessionToken := UUID.String()
 
-	return sessionToken, true, ""
+	return sessionToken, true
 }
 
 func (s *SessionStorage) Remove(user *m.Session) *ApiResponse {
