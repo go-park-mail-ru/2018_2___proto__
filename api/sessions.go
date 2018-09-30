@@ -7,7 +7,7 @@ import (
 type ISessionStorage interface {
 	//создает сессию для пользователя
 	//использовать для авторизации
-	Create(user *m.User) string
+	Create(user *m.User) (string, bool)
 
 	//уничтожает сессиию
 	//использовать при выходе из системы
@@ -29,8 +29,8 @@ func NewSessionStorage() *SessionStorage {
 
 //выдача куки при авторизации
 //нужно реализовать
-func (s *SessionStorage) Create(user *m.User) string {
-	return "sessionId"
+func (s *SessionStorage) Create(user *m.User) (string, bool) {
+	return "", false
 }
 
 func (s *SessionStorage) Remove(user *m.Session) *ApiResponse {
