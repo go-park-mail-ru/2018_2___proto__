@@ -16,17 +16,19 @@ const (
 //посредник между сетью и логикой апи
 type ApiHandler struct {
 	apiService *api.ApiService
+	corsAllowedHost string
 }
 
 //избавиться от хардкода коннекта к бд
-func NewApiHandler() *ApiHandler {
-	service, err := api.NewApiService("sqlite3", "proto.db")
+func NewApiHandler(settings *ServerConfig) *ApiHandler {
+	service, err := api.NewApiService(settings.DbConnector, settings.DbConnectionString)
 	if err != nil {
 		panic(err)
 	}
 
 	return &ApiHandler{
 		apiService: service,
+		corsAllowedHost: settings.CorsAllowedHost,
 	}
 }
 
@@ -95,6 +97,16 @@ func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc 
 			return
 		}
 
+		next(ctx)
+	}
+}
+
+//настройка cors'a
+func (h *ApiHandler) CorsEnableMiddleware(next router.HandlerFunc) router.HandlerFunc {
+	return func(ctx router.IContext) {
+		ctx.Header("Access-Control-Allow-Origin", h.corsAllowedHost)
+		ctx.Header("Access-Control-Allow-Credentials", "true")
+		
 		next(ctx)
 	}
 }
