@@ -23,13 +23,13 @@ type ISessionStorage interface {
 }
 
 type SessionStorage struct {
-	db *sql.DB
+	db      *sql.DB
+	storage map[string]*m.Session
 }
 
 //нужно реализовать
 func NewSessionStorage(db *sql.DB) *SessionStorage {
-	//тут должна проходить инициализация хранилища сессий
-	return &SessionStorage{db: db}
+	return &SessionStorage{db: db, storage: make(map[string]*m.Session)}
 }
 
 //выдача куки при авторизации
@@ -66,8 +66,9 @@ func (s *SessionStorage) Create(user *m.User) (string, bool) {
 		log.Fatal(err)
 		return "", false
 	}
-	sessionToken := UUID.String()
 
+	sessionToken := UUID.String()
+	s.storage[sessionToken] = &m.Session{User: user}
 	return sessionToken, true
 }
 
