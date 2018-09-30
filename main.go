@@ -11,8 +11,8 @@ func main() {
 
 	//урлы должны быть отсортированы по длине урла по убыванию потом жобавлю это программно
 	router.AddHandlerGet("/user/{slug}", apiHandler.AuthMiddleware(apiHandler.GetUser))
+	router.AddHandlerPost("/user/register", apiHandler.AddUser)
 	router.AddHandlerDelete("/user", apiHandler.DeleteUser)
-	router.AddHandlerPost("/user", apiHandler.AddUser)
 	router.AddHandlerPut("/user", apiHandler.AuthMiddleware(apiHandler.UpdateUser))
 
 	http.ListenAndServe(":8080", router)

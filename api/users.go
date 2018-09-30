@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	m "proto-game-server/models"
 )
 
@@ -15,13 +16,14 @@ type IUserStorage interface {
 }
 
 type UserStorage struct {
-
+	db *sql.DB
 }
 
-func NewUserStorage() *UserStorage {
-	return &UserStorage{}
+func NewUserStorage(db *sql.DB) *UserStorage {
+	return &UserStorage{db}
 }
 
+//обязательно нужно реализовать
 func (u *UserStorage) Add(user *m.User) *ApiResponse {
 	return &ApiResponse{Code: 400, Response: &m.Error{1, "unimplemented api"}}
 }

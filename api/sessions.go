@@ -21,10 +21,14 @@ type ISessionStorage interface {
 type SessionStorage struct {
 }
 
+//нужно реализовать
 func NewSessionStorage() *SessionStorage {
+	//тут должна проходить инициализация хранилища сессий
 	return &SessionStorage{}
 }
 
+//выдача куки при авторизации
+//нужно реализовать
 func (s *SessionStorage) Create(user *m.User) string {
 	return "sessionId"
 }
