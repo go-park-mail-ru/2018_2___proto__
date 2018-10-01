@@ -29,7 +29,9 @@ func (u *UserStorage) Add(user *m.User) *ApiResponse {
 	_, err := u.db.Exec(
 		"INSERT INTO user(nickname, password, email, fullname) VALUES ($1,$2,$3,$4);",
 		user.Nickname, user.Password, user.Email, user.Fullname)
+	fmt.Println(user.Nickname, user.Password, user.Email, user.Fullname)
 	if err != nil {
+		fmt.Println(err.Error())
 		return &ApiResponse{
 			Code:     409,
 			Response: &m.Error{Code: 409, Message: err.Error()}}
@@ -83,6 +85,59 @@ func (u *UserStorage) Update(user *m.User) *ApiResponse {
 
 	return &ApiResponse{Code: 200}
 }
+
+/* func (u *UserStorage) Update(user *m.User) *ApiResponse {
+	// return &ApiResponse{Code: 400, Response: &m.Error{1, "unimplemented api"}}
+	if user.Nickname == "" {
+		return &ApiResponse{
+			Code:     400,
+			Response: &m.Error{Code: 400, Message: "Omitted username"}}
+	}
+
+	row, err := u.db.Query("SELECT email, fullname, password FROM user WHERE nickname=$1", user.Nickname)
+
+	if err != nil {
+		log.Fatal(err)
+		return &ApiResponse{
+			Code:     409,
+			Response: &m.Error{Code: 409, Message: err.Error()}}
+	}
+	defer row.Close()
+
+	var oldUser m.User
+	for row.Next() {
+		err = row.Scan(&oldUser.Email, &oldUser.Fullname, &oldUser.Password)
+		if err != nil {
+			log.Fatal(err)
+			return &ApiResponse{
+				Code:     409,
+				Response: &m.Error{Code: 409, Message: err.Error()}}
+		}
+	}
+	if err = row.Err(); err != nil {
+		log.Fatal(err)
+		return &ApiResponse{
+			Code:     409,
+			Response: &m.Error{Code: 409, Message: err.Error()}}
+	}
+
+	// query := "UPDATE user SET "
+	// counter := 1
+
+	fmt.Println(oldUser)
+	if user.Email != "" {
+		_, err := u.db.Exec(
+			"UPDATE user SET email = $1 WHERE nickname = $2",
+			user.Email, user.Nickname)
+		if err != nil {
+			return &ApiResponse{
+				Code:     400,
+				Response: &m.Error{Code: 400, Message: err.Error()}}
+		}
+	}
+
+	return &ApiResponse{Code: 200}
+} */
 
 func (u *UserStorage) Get(slug string) *ApiResponse {
 	return &ApiResponse{Code: 400, Response: &m.Error{1, "unimplemented api"}}
