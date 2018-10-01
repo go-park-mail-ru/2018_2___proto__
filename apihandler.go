@@ -99,7 +99,8 @@ func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc 
 		//попытка найти сессию в хранилище сессий и вызов след обработчика если все норм
 		sessionCookie, err := ctx.GetCookie(cookieSessionIdName)
 		if err != nil {
-			WriteResponse(&api.ApiResponse{http.StatusInternalServerError, "ошибка поиска сессии в куках"}, ctx)
+			WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError,
+				Response: "ошибка поиска сессии в куках"}, ctx)
 			return
 		}
 

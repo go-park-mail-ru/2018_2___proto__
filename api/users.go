@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"fmt"
 	m "proto-game-server/models"
 )
 
@@ -43,10 +44,52 @@ func (u *UserStorage) Remove(user *m.User) *ApiResponse {
 	return &ApiResponse{Code: 400, Response: &m.Error{1, "unimplemented api"}}
 }
 
+//untested. Скорее всего не работает
 func (u *UserStorage) Update(user *m.User) *ApiResponse {
-	return &ApiResponse{Code: 400, Response: &m.Error{1, "unimplemented api"}}
+	// return &ApiResponse{Code: 400, Response: &m.Error{1, "unimplemented api"}}
+	if user.Nickname == "" {
+		return &ApiResponse{
+			Code:     400,
+			Response: &m.Error{Code: 400, Message: "Omitted username"}}
+	}
+	fmt.Println("user.Email")
+	if user.Email != "" {
+		_, err := u.db.Exec(
+			"UPDATE user SET email = $1 WHERE nickname = $2",
+			user.Email, user.Nickname)
+		if err != nil {
+			return &ApiResponse{
+				Code:     400,
+				Response: &m.Error{Code: 400, Message: err.Error()}}
+		}
+	}
+	if user.Password != "" {
+		_, err := u.db.Exec(
+			"UPDATE user SET password = $1 WHERE nickname = $2",
+			user.Password, user.Nickname)
+		if err != nil {
+			return &ApiResponse{
+				Code:     400,
+				Response: &m.Error{Code: 400, Message: err.Error()}}
+		}
+	}
+	if user.Fullname != "" {
+		_, err := u.db.Exec(
+			"UPDATE user SET fullname = $1 WHERE nickname = $2",
+			user.Fullname, user.Nickname)
+		if err != nil {
+			return &ApiResponse{
+				Code:     400,
+				Response: &m.Error{Code: 400, Message: err.Error()}}
+		}
+	}
+
+	return &ApiResponse{Code: 200}
 }
 
 func (u *UserStorage) Get(slug string) *ApiResponse {
 	return &ApiResponse{Code: 400, Response: &m.Error{1, "unimplemented api"}}
 }
+
+// UPDATE user SET email = $1, WHERE nickname = $2
+// curl -X PUT -d '{"nickname":"asd1, "email":"kek@kek.os"}' localhost:8080/user/
