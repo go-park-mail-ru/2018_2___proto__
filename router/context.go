@@ -78,6 +78,7 @@ type IContext interface {
 }
 
 type Context struct {
+	statusChanged bool
 	contextData  map[string]interface{}
 	apiUrlParser IApiUrlParser
 	r            *http.Request
@@ -86,6 +87,7 @@ type Context struct {
 
 func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	return &Context{
+		statusChanged: false,
 		contextData: make(map[string]interface{}),
 		r:           r,
 		w:           w,
@@ -230,6 +232,10 @@ func (c *Context) GetCookie(key string) (*http.Cookie, error) {
 }
 
 func (c *Context) SetCookie(cookie *http.Cookie) {
+	if c.statusChanged {
+		panic("status code already changed, y cannot set cookie after status code")
+	}
+
 	http.SetCookie(c.w, cookie)
 }
 
@@ -238,6 +244,7 @@ func (c *Context) Method() string {
 }
 
 func (c *Context) StatusCode(code int) {
+	c.statusChanged = true
 	c.w.WriteHeader(code)
 }
 

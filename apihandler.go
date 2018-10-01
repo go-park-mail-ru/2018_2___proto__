@@ -147,15 +147,13 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 	ctx.StatusCode(http.StatusOK)
 }
 
-func (h *ApiHandler) Test(ctx router.IContext) {
+func (h *ApiHandler) AddCookie(ctx router.IContext) {
 	//записываем ид сессии в куки
 	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище
 	expiration := time.Now().Add(365 * 24 * time.Hour)
-	cookie := &http.Cookie{Name: "csrftoken", Value: "abcd", Expires: expiration}
-
-	ctx.ContentType("application/json")
-	ctx.StatusCode(200)
+	cookie := &http.Cookie{Name: "csrftoken", Value: "abcd", Expires: expiration, Path: "/"}
+	
 	ctx.SetCookie(cookie)
 	ctx.StatusCode(http.StatusOK)
-	ctx.Write([]byte("COOOOOKIIIES"))
+	ctx.Write([]byte("COOKIE"))
 }
