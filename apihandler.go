@@ -1,6 +1,7 @@
 package main
 
 import (
+	"time"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -144,4 +145,17 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище
 	ctx.SetCookie(&http.Cookie{Name: cookieSessionIdName, Value: sessionId})
 	ctx.StatusCode(http.StatusOK)
+}
+
+func (h *ApiHandler) Test(ctx router.IContext) {
+	//записываем ид сессии в куки
+	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище
+	expiration := time.Now().Add(365 * 24 * time.Hour)
+	cookie := &http.Cookie{Name: "csrftoken", Value: "abcd", Expires: expiration}
+
+	ctx.ContentType("application/json")
+	ctx.StatusCode(200)
+	ctx.SetCookie(cookie)
+	ctx.StatusCode(http.StatusOK)
+	ctx.Write([]byte("COOOOOKIIIES"))
 }

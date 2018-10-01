@@ -230,7 +230,7 @@ func (c *Context) GetCookie(key string) (*http.Cookie, error) {
 }
 
 func (c *Context) SetCookie(cookie *http.Cookie) {
-	c.r.AddCookie(cookie)
+	http.SetCookie(c.w, cookie)
 }
 
 func (c *Context) Method() string {
