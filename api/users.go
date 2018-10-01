@@ -25,7 +25,7 @@ func NewUserStorage(db *sql.DB) *UserStorage {
 
 //обязательно нужно реализовать
 func (u *UserStorage) Add(user *m.User) *ApiResponse {
-	_, err := u.db.Exec(
+	result, err := u.db.Exec(
 		"INSERT INTO user(nickname, password, email, fullname) VALUES ($1,$2,$3,$4);",
 		user.Nickname, user.Password, user.Email, user.Fullname)
 
@@ -35,7 +35,8 @@ func (u *UserStorage) Add(user *m.User) *ApiResponse {
 			Response: &m.Error{Code: 409, Message: err.Error()}}
 	}
 	
-	return &ApiResponse{Code: 201}
+	user.Id, _ = result.LastInsertId()
+	return &ApiResponse{Code: 201, Response: user}
 }
 
 func (u *UserStorage) Remove(user *m.User) *ApiResponse {
