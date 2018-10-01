@@ -16,8 +16,9 @@ func main() {
 
 	//урлы должны быть отсортированы по длине урла по убыванию потом жобавлю это программно
 	router.AddHandlerPost("/signin", apiHandler.CorsEnableMiddleware(apiHandler.Authorize))
-	router.AddHandlerGet("/user/{slug}", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.GetUser)))
-	router.AddHandlerPost("/user/register", apiHandler.CorsEnableMiddleware(apiHandler.AddUser))
+	router.AddHandlerGet("/user/{slug}",
+		apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.GetUser)))
+	router.AddHandlerPost("/signup", apiHandler.CorsEnableMiddleware(apiHandler.AddUser))
 	router.AddHandlerDelete("/user", apiHandler.CorsEnableMiddleware(apiHandler.DeleteUser))
 	router.AddHandlerPut("/user", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.UpdateUser)))
 
