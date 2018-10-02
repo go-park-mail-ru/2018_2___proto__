@@ -24,6 +24,7 @@ func main() {
 
 	router.AddHandlerDelete("/user", apiHandler.CorsEnableMiddleware(apiHandler.DeleteUser))
 	router.AddHandlerPut("/user", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.UpdateUser)))
+	router.AddHandlerOptions("/", apiHandler.CorsSetup)
 
 	//запускаем сервер
 	http.ListenAndServe(":8080", router)

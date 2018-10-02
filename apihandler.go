@@ -118,11 +118,14 @@ func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc 
 }
 
 //настройка cors'a
+func (h *ApiHandler) CorsSetup(ctx router.IContext) {
+	ctx.Header("Access-Control-Allow-Origin", h.corsAllowedHost)
+	ctx.Header("Access-Control-Allow-Credentials", "true")
+}
+
 func (h *ApiHandler) CorsEnableMiddleware(next router.HandlerFunc) router.HandlerFunc {
 	return func(ctx router.IContext) {
-		ctx.Header("Access-Control-Allow-Origin", h.corsAllowedHost)
-		ctx.Header("Access-Control-Allow-Credentials", "true")
-
+		h.CorsSetup(ctx)
 		next(ctx)
 	}
 }
