@@ -64,9 +64,11 @@ type IContext interface {
 	//будет полезно, если нужно передать по конвейеру http запроса какие-нибудь данные
 	CtxParam(key string) (interface{}, bool)
 
+	AddCtxParam(key string, value interface{})
+
 	GetCookie(key string) (*http.Cookie, error)
 
-	SetCookie(cookie *http.Cookie)
+	SetCookie(cookie *http.Cookie) error
 
 	//возвращает метод запроса
 	//можно использовать для фильтрации запросов по типу
@@ -227,16 +229,21 @@ func (c *Context) CtxParam(key string) (interface{}, bool) {
 	return value, ok
 }
 
+func (c *Context) AddCtxParam(key string, value interface{}) {
+	c.contextData[key] = value
+}
+
 func (c *Context) GetCookie(key string) (*http.Cookie, error) {
 	return c.r.Cookie(key)
 }
 
-func (c *Context) SetCookie(cookie *http.Cookie) {
+func (c *Context) SetCookie(cookie *http.Cookie) error {
 	if c.statusChanged {
-		panic("status code already changed, y cannot set cookie after status code")
+		return errors.New("Cookie cannot be set after status code")
 	}
 
 	http.SetCookie(c.w, cookie)
+	return nil
 }
 
 func (c *Context) Method() string {
