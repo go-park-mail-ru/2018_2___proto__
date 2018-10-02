@@ -1,6 +1,7 @@
 package router
 
 import (
+	"log"
 	"net/http"
 )
 
@@ -63,7 +64,12 @@ func (r *Router) AddHandlerPut(urlPattern string, h HandlerFunc) {
 	r.addHandlerOnMethos(urlPattern, h, http.MethodPut)
 }
 
+func (r *Router) AddHandlerOptions(urlPattern string, h HandlerFunc) {
+	r.addHandlerOnMethos(urlPattern, h, http.MethodOptions)
+}
+
 func (r *Router) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
+	log.Printf("%v: %v", req.Method, req.RequestURI)
 	ctx := NewContext(writer, req)
 
 	routes, ok := r.routes[req.Method]

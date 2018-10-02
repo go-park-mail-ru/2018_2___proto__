@@ -1,7 +1,5 @@
 {
-    "indexpage": "/views/index.html",
-	"staticfilesurl": "",
-	"staticfilesdir": "./assets/",
-	"serverport": ":8080",
-	"loglevel": "debug"
+    "dbconnector": "sqlite3",
+    "connectionstring": "./data/proto.db",
+    "corsallowedhost": "http://localhost:3000"
 }

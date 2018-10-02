@@ -7,11 +7,9 @@ import (
 
 //это конфиги для старой сборки сервера, нужно буддет потом структуру поменять
 type ServerConfig struct {
-	IndexPage      string `json:"indexpage"`
-	StaticFilesUrl string `json:"staticfilesurl"`
-	StaticFileDir  string `json:"staticfilesdir"`
-	ServerPort     string `json:"serverport"`
-	LogLevel       string `json:"loglevel"`
+	DbConnector        string `json:"dbconnector"`
+	DbConnectionString string `json:"connectionstring"`
+	CorsAllowedHost    string `json:"corsallowedhost"`
 }
 
 func LoadConfigs(path string) (*ServerConfig, error) {
