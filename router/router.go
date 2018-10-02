@@ -10,6 +10,7 @@ var supportedMethods = []string{
 	http.MethodDelete,
 	http.MethodPost,
 	http.MethodPut,
+	http.MethodOptions,
 }
 
 type Router struct {
