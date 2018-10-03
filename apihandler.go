@@ -108,7 +108,7 @@ func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc 
 		session, isSessionExists := h.apiService.Sessions.GetById(sessionCookie.Value)
 
 		if !isSessionExists {
-			WriteResponse(&api.ApiResponse{http.StatusUnauthorized, "вы не авторизованы"}, ctx)
+			WriteResponse(&api.ApiResponse{http.StatusUnauthorized, "You are not authorized"}, ctx)
 			return
 		}
 
@@ -141,7 +141,7 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 	//хранилище создают сессию и возвращает нам ид сессии, который записывам в куки
 	sessionId, ok := h.apiService.Sessions.Create(user)
 	if !ok {
-		log.Printf("неавторизированный запрос &s\n", ctx.RequestURI())
+		log.Printf("unauthorized request %s\n", ctx.RequestURI())
 		WriteResponse(&api.ApiResponse{Code: http.StatusBadRequest, Response: &m.Error{http.StatusBadRequest, "wrong login or password"}}, ctx)
 		return
 	}
