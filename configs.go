@@ -10,6 +10,7 @@ type ServerConfig struct {
 	DbConnector        string `json:"dbconnector"`
 	DbConnectionString string `json:"connectionstring"`
 	CorsAllowedHost    string `json:"corsallowedhost"`
+	Port               string `json:"port"`
 }
 
 func LoadConfigs(path string) (*ServerConfig, error) {

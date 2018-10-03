@@ -27,5 +27,5 @@ func main() {
 	router.AddHandlerOptions("/", apiHandler.CorsSetup)
 
 	//запускаем сервер
-	http.ListenAndServe(":8080", router)
+	http.ListenAndServe(cfg.Port, router)
 }
