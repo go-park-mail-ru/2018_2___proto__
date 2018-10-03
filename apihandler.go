@@ -93,7 +93,6 @@ func (h *ApiHandler) GetLeaders(ctx router.IContext) {
 }
 
 //миддлварь для аутентификации
-//обязательно нужно реализовать
 func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc {
 	return func(ctx router.IContext) {
 		//тут должно быть получение id сессии из кукисов
