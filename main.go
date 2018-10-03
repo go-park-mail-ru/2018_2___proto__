@@ -29,6 +29,11 @@ func main() {
 	router.AddHandlerOptions("/", apiHandler.CorsSetup)
 
 	//запускаем сервер
-	err = http.ListenAndServeTLS(":8443", "fullchain.pem", "privkey.pem", router)
+	if cfg.UseHTTPS {
+		err = http.ListenAndServeTLS(cfg.Port, "fullchain.pem", "privkey.pem", router)
+	} else {
+		err = http.ListenAndServe(cfg.Port, router)
+	}
+	
 	log.Fatal(err)
 }
