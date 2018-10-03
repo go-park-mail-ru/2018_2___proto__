@@ -90,6 +90,17 @@ func (h *ApiHandler) GetUser(ctx router.IContext) {
 	WriteResponse(h.apiService.Users.Get(params["slug"]), ctx)
 }
 
+func (h *ApiHandler) Profile(ctx router.IContext) {
+	data, ok := ctx.CtxParam(sessionCtxParamName)
+	if !ok {
+		WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError,Response: "ошибка поиска сессии в куках"}, ctx)
+		return
+	}
+
+	session := data.(*m.Session)
+	WriteResponse(&api.ApiResponse{Code: http.StatusOK, Response: session.User}, ctx)
+}
+
 func (h *ApiHandler) GetLeaders(ctx router.IContext) {
 	params := ctx.UrlParams()
 
@@ -110,8 +121,7 @@ func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc 
 		//попытка найти сессию в хранилище сессий и вызов след обработчика если все норм
 		sessionCookie, err := ctx.GetCookie(cookieSessionIdName)
 		if err != nil {
-			WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError,
-				Response: "ошибка поиска сессии в куках"}, ctx)
+			WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError,Response: "ошибка поиска сессии в куках"}, ctx)
 			return
 		}
 
