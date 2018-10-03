@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"proto-game-server/router"
 )
@@ -28,5 +29,6 @@ func main() {
 	router.AddHandlerOptions("/", apiHandler.CorsSetup)
 
 	//запускаем сервер
-	http.ListenAndServe(cfg.Port, router)
+	err = http.ListenAndServeTLS(":8443", "fullchain.pem", "privkey.pem", router)
+	log.Fatal(err)
 }
