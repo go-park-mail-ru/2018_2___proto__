@@ -1,14 +1,14 @@
 package main
 
 import (
-	"log"
-	"time"
 	"encoding/json"
+	"log"
 	"net/http"
 	"proto-game-server/api"
 	m "proto-game-server/models"
 	"proto-game-server/router"
 	"strconv"
+	"time"
 )
 
 const (
@@ -37,7 +37,7 @@ func NewApiHandler(settings *ServerConfig) *ApiHandler {
 func WriteResponse(response *api.ApiResponse, ctx router.IContext) {
 	data, err := json.Marshal(response.Response)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 
 	ctx.ContentType("application/json")
@@ -141,6 +141,7 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 	//хранилище создают сессию и возвращает нам ид сессии, который записывам в куки
 	sessionId, ok := h.apiService.Sessions.Create(user)
 	if !ok {
+		log.Printf("неавторизированный запрос &s\n", ctx.RequestURI())
 		WriteResponse(&api.ApiResponse{Code: http.StatusBadRequest, Response: &m.Error{http.StatusBadRequest, "wrong login or password"}}, ctx)
 		return
 	}
@@ -149,7 +150,7 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище
 	err := ctx.SetCookie(&http.Cookie{Name: cookieSessionIdName, Value: sessionId})
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 
 	ctx.StatusCode(http.StatusOK)
@@ -160,10 +161,10 @@ func (h *ApiHandler) AddCookie(ctx router.IContext) {
 	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище
 	expiration := time.Now().Add(365 * 24 * time.Hour)
 	cookie := &http.Cookie{Name: "csrftoken", Value: "abcd", Expires: expiration, Path: "/"}
-	
+
 	err := ctx.SetCookie(cookie)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 
 	ctx.StatusCode(http.StatusOK)

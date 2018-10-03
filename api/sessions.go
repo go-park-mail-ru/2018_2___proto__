@@ -35,35 +35,35 @@ func NewSessionStorage(db *sql.DB) *SessionStorage {
 //выдача куки при авторизации
 
 func (s *SessionStorage) Create(user *m.User) (string, bool) {
-	row, err := s.db.Query("SELECT password FROM user WHERE nickname=$1", user.Nickname)
+	rows, err := s.db.Query("SELECT password FROM user WHERE nickname=$1", user.Nickname)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 		return "", false
 	}
-	defer row.Close()
+	defer rows.Close()
 
 	var expectedPassword string
-	for row.Next() {
-		err = row.Scan(&expectedPassword)
-		if err = row.Err(); err != nil {
-			log.Fatal(err)
+	for rows.Next() {
+		err = rows.Scan(&expectedPassword)
+		if err = rows.Err(); err != nil {
+			log.Print(err)
 			return "", false
 		}
 	}
 
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 		return "", false
 	}
 
-	if expectedPassword != user.Password {
+	if expectedPassword != user.Password || expectedPassword == ""{
 		return "", false
 	}
 
 	UUID, err := uuid.NewV4()
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 		return "", false
 	}
 
