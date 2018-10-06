@@ -34,6 +34,6 @@ func main() {
 	} else {
 		err = http.ListenAndServe(cfg.Port, router)
 	}
-	
+
 	log.Fatal(err)
 }
