@@ -17,6 +17,7 @@ func main() {
 
 	//урлы должны быть отсортированы по длине урла по убыванию потом жобавлю это программно
 	router.AddHandlerGet("/user/{slug}", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.GetUser)))
+	router.AddHandlerGet("/user", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.Profile)))
 	router.AddHandlerGet("/leaders/{offset}/{limit}", apiHandler.CorsEnableMiddleware(apiHandler.GetLeaders))
 	router.AddHandlerGet("/test", apiHandler.AddCookie)
 
@@ -28,6 +29,11 @@ func main() {
 	router.AddHandlerOptions("/", apiHandler.CorsSetup)
 
 	//запускаем сервер
-	err = http.ListenAndServeTLS(":8443", "fullchain.pem", "privkey.pem", router)
+	if cfg.UseHTTPS {
+		err = http.ListenAndServeTLS(cfg.Port, "fullchain.pem", "privkey.pem", router)
+	} else {
+		err = http.ListenAndServe(cfg.Port, router)
+	}
+	
 	log.Fatal(err)
 }

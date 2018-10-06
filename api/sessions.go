@@ -33,31 +33,16 @@ func NewSessionStorage(db *sql.DB) *SessionStorage {
 }
 
 //выдача куки при авторизации
-
 func (s *SessionStorage) Create(user *m.User) (string, bool) {
-	rows, err := s.db.Query("SELECT password FROM user WHERE nickname=$1", user.Nickname)
+	row := s.db.QueryRow("SELECT id, nickname, password, fullname, email FROM user WHERE nickname=$1", user.Nickname)
+	expectedUser, err := ScanUserFromRow(row)
 
 	if err != nil {
 		log.Print(err)
 		return "", false
 	}
-	defer rows.Close()
-
-	var expectedPassword string
-	for rows.Next() {
-		err = rows.Scan(&expectedPassword)
-		if err = rows.Err(); err != nil {
-			log.Print(err)
-			return "", false
-		}
-	}
-
-	if err != nil {
-		log.Print(err)
-		return "", false
-	}
-
-	if expectedPassword != user.Password || expectedPassword == ""{
+	
+	if expectedUser.Password != user.Password {
 		return "", false
 	}
 
@@ -68,7 +53,7 @@ func (s *SessionStorage) Create(user *m.User) (string, bool) {
 	}
 
 	sessionToken := UUID.String()
-	s.storage[sessionToken] = &m.Session{User: user}
+	s.storage[sessionToken] = &m.Session{Id: sessionToken, User: expectedUser}
 	return sessionToken, true
 }
 
@@ -77,7 +62,8 @@ func (s *SessionStorage) Remove(user *m.Session) *ApiResponse {
 }
 
 func (s *SessionStorage) GetById(id string) (*m.Session, bool) {
-	return nil, false
+	session, ok := s.storage[id]
+	return session, ok
 }
 
 // curl -d '{"nickname":"asd21","password":"1231",}' localhost:8080/user/signin

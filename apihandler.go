@@ -13,6 +13,9 @@ import (
 
 const (
 	cookieSessionIdName = "sessionId"
+	sessionCtxParamName = "session"
+	leadersOffsetParamName = "offset"
+	leadersCountParamName = "count"
 )
 
 //посредник между сетью и логикой апи
@@ -65,6 +68,13 @@ func (h *ApiHandler) DeleteUser(ctx router.IContext) {
 }
 
 func (h *ApiHandler) UpdateUser(ctx router.IContext) {
+	session, ok := ctx.CtxParam(sessionCtxParamName)
+	if !ok {
+		WriteResponse(&api.ApiResponse{http.StatusNotFound, "session not found"}, ctx)
+		return
+	}
+	session = session
+
 	user := new(m.User)
 	ctx.ReadJSON(user)
 
@@ -76,14 +86,26 @@ func (h *ApiHandler) GetUser(ctx router.IContext) {
 	ctx.ReadJSON(user)
 
 	params := ctx.UrlParams()
+
 	WriteResponse(h.apiService.Users.Get(params["slug"]), ctx)
+}
+
+func (h *ApiHandler) Profile(ctx router.IContext) {
+	data, ok := ctx.CtxParam(sessionCtxParamName)
+	if !ok {
+		WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError,Response: "ошибка поиска сессии в куках"}, ctx)
+		return
+	}
+
+	session := data.(*m.Session)
+	WriteResponse(&api.ApiResponse{Code: http.StatusOK, Response: session.User}, ctx)
 }
 
 func (h *ApiHandler) GetLeaders(ctx router.IContext) {
 	params := ctx.UrlParams()
 
-	offset, offsetErr := strconv.Atoi(params["offset"])
-	limit, limitErr := strconv.Atoi(params["limit"])
+	offset, offsetErr := strconv.Atoi(params[leadersOffsetParamName])
+	limit, limitErr := strconv.Atoi(params[leadersCountParamName])
 
 	if offsetErr != nil || limitErr != nil {
 		WriteResponse(&api.ApiResponse{http.StatusBadRequest, ""}, ctx)
@@ -99,8 +121,7 @@ func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc 
 		//попытка найти сессию в хранилище сессий и вызов след обработчика если все норм
 		sessionCookie, err := ctx.GetCookie(cookieSessionIdName)
 		if err != nil {
-			WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError,
-				Response: "ошибка поиска сессии в куках"}, ctx)
+			WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError,Response: "ошибка поиска сессии в куках"}, ctx)
 			return
 		}
 
