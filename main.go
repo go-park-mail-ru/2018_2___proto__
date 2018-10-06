@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"proto-game-server/router"
 )
@@ -16,7 +17,8 @@ func main() {
 
 	//урлы должны быть отсортированы по длине урла по убыванию потом жобавлю это программно
 	router.AddHandlerGet("/user/{slug}", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.GetUser)))
-	router.AddHandlerGet("/leaders/{offset}/{limit}", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.GetUser)))
+	router.AddHandlerGet("/user", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.Profile)))
+	router.AddHandlerGet("/leaders/{offset}/{limit}", apiHandler.CorsEnableMiddleware(apiHandler.GetLeaders))
 	router.AddHandlerGet("/test", apiHandler.AddCookie)
 
 	router.AddHandlerPost("/signup", apiHandler.CorsEnableMiddleware(apiHandler.AddUser))
@@ -27,5 +29,11 @@ func main() {
 	router.AddHandlerOptions("/", apiHandler.CorsSetup)
 
 	//запускаем сервер
-	http.ListenAndServe(cfg.Port, router)
+	if cfg.UseHTTPS {
+		err = http.ListenAndServeTLS(cfg.Port, "fullchain.pem", "privkey.pem", router)
+	} else {
+		err = http.ListenAndServe(cfg.Port, router)
+	}
+
+	log.Fatal(err)
 }

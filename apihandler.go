@@ -1,18 +1,21 @@
 package main
 
 import (
-	"log"
-	"time"
 	"encoding/json"
+	"log"
 	"net/http"
 	"proto-game-server/api"
 	m "proto-game-server/models"
 	"proto-game-server/router"
 	"strconv"
+	"time"
 )
 
 const (
 	cookieSessionIdName = "sessionId"
+	sessionCtxParamName = "session"
+	leadersOffsetParamName = "offset"
+	leadersCountParamName = "count"
 )
 
 //посредник между сетью и логикой апи
@@ -37,7 +40,7 @@ func NewApiHandler(settings *ServerConfig) *ApiHandler {
 func WriteResponse(response *api.ApiResponse, ctx router.IContext) {
 	data, err := json.Marshal(response.Response)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 
 	ctx.ContentType("application/json")
@@ -65,6 +68,13 @@ func (h *ApiHandler) DeleteUser(ctx router.IContext) {
 }
 
 func (h *ApiHandler) UpdateUser(ctx router.IContext) {
+	session, ok := ctx.CtxParam(sessionCtxParamName)
+	if !ok {
+		WriteResponse(&api.ApiResponse{http.StatusNotFound, "session not found"}, ctx)
+		return
+	}
+	session = session
+
 	user := new(m.User)
 	ctx.ReadJSON(user)
 
@@ -76,14 +86,26 @@ func (h *ApiHandler) GetUser(ctx router.IContext) {
 	ctx.ReadJSON(user)
 
 	params := ctx.UrlParams()
+
 	WriteResponse(h.apiService.Users.Get(params["slug"]), ctx)
+}
+
+func (h *ApiHandler) Profile(ctx router.IContext) {
+	data, ok := ctx.CtxParam(sessionCtxParamName)
+	if !ok {
+		WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError,Response: "ошибка поиска сессии в куках"}, ctx)
+		return
+	}
+
+	session := data.(*m.Session)
+	WriteResponse(&api.ApiResponse{Code: http.StatusOK, Response: session.User}, ctx)
 }
 
 func (h *ApiHandler) GetLeaders(ctx router.IContext) {
 	params := ctx.UrlParams()
 
-	offset, offsetErr := strconv.Atoi(params["offset"])
-	limit, limitErr := strconv.Atoi(params["limit"])
+	offset, offsetErr := strconv.Atoi(params[leadersOffsetParamName])
+	limit, limitErr := strconv.Atoi(params[leadersCountParamName])
 
 	if offsetErr != nil || limitErr != nil {
 		WriteResponse(&api.ApiResponse{http.StatusBadRequest, ""}, ctx)
@@ -93,15 +115,13 @@ func (h *ApiHandler) GetLeaders(ctx router.IContext) {
 }
 
 //миддлварь для аутентификации
-//обязательно нужно реализовать
 func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc {
 	return func(ctx router.IContext) {
 		//тут должно быть получение id сессии из кукисов
 		//попытка найти сессию в хранилище сессий и вызов след обработчика если все норм
 		sessionCookie, err := ctx.GetCookie(cookieSessionIdName)
 		if err != nil {
-			WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError,
-				Response: "ошибка поиска сессии в куках"}, ctx)
+			WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError,Response: "ошибка поиска сессии в куках"}, ctx)
 			return
 		}
 
@@ -109,7 +129,7 @@ func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc 
 		session, isSessionExists := h.apiService.Sessions.GetById(sessionCookie.Value)
 
 		if !isSessionExists {
-			WriteResponse(&api.ApiResponse{http.StatusUnauthorized, "вы не авторизованы"}, ctx)
+			WriteResponse(&api.ApiResponse{http.StatusUnauthorized, "You are not authorized"}, ctx)
 			return
 		}
 
@@ -122,6 +142,7 @@ func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc 
 func (h *ApiHandler) CorsSetup(ctx router.IContext) {
 	ctx.Header("Access-Control-Allow-Origin", h.corsAllowedHost)
 	ctx.Header("Access-Control-Allow-Credentials", "true")
+	ctx.Header("Access-Control-Allow-Headers", "Content-Type")
 }
 
 func (h *ApiHandler) CorsEnableMiddleware(next router.HandlerFunc) router.HandlerFunc {
@@ -141,6 +162,7 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 	//хранилище создают сессию и возвращает нам ид сессии, который записывам в куки
 	sessionId, ok := h.apiService.Sessions.Create(user)
 	if !ok {
+		log.Printf("unauthorized request %s\n", ctx.RequestURI())
 		WriteResponse(&api.ApiResponse{Code: http.StatusBadRequest, Response: &m.Error{http.StatusBadRequest, "wrong login or password"}}, ctx)
 		return
 	}
@@ -149,7 +171,7 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище
 	err := ctx.SetCookie(&http.Cookie{Name: cookieSessionIdName, Value: sessionId})
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 
 	ctx.StatusCode(http.StatusOK)
@@ -160,10 +182,10 @@ func (h *ApiHandler) AddCookie(ctx router.IContext) {
 	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище
 	expiration := time.Now().Add(365 * 24 * time.Hour)
 	cookie := &http.Cookie{Name: "csrftoken", Value: "abcd", Expires: expiration, Path: "/"}
-	
+
 	err := ctx.SetCookie(cookie)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 
 	ctx.StatusCode(http.StatusOK)
