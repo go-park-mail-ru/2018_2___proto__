@@ -9,13 +9,17 @@ import (
 	"proto-game-server/router"
 	"strconv"
 	"time"
+
+	_ "github.com/lib/pq"
 )
 
 const (
-	cookieSessionIdName = "sessionId"
-	sessionCtxParamName = "session"
+	cookieSessionIdName    = "sessionId"
+	sessionCtxParamName    = "session"
 	leadersOffsetParamName = "offset"
-	leadersCountParamName = "count"
+	leadersCountParamName  = "count"
+	pgUser                 = "proto"
+	dbName                 = "proto"
 )
 
 //посредник между сетью и логикой апи
@@ -93,7 +97,7 @@ func (h *ApiHandler) GetUser(ctx router.IContext) {
 func (h *ApiHandler) Profile(ctx router.IContext) {
 	data, ok := ctx.CtxParam(sessionCtxParamName)
 	if !ok {
-		WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError,Response: "ошибка поиска сессии в куках"}, ctx)
+		WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError, Response: "ошибка поиска сессии в куках"}, ctx)
 		return
 	}
 
@@ -121,7 +125,7 @@ func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc 
 		//попытка найти сессию в хранилище сессий и вызов след обработчика если все норм
 		sessionCookie, err := ctx.GetCookie(cookieSessionIdName)
 		if err != nil {
-			WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError,Response: "ошибка поиска сессии в куках"}, ctx)
+			WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError, Response: "ошибка поиска сессии в куках"}, ctx)
 			return
 		}
 
