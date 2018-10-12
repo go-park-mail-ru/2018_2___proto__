@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"proto-game-server/api"
+	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 	m "proto-game-server/models"
 	"proto-game-server/router"
 	"strconv"
