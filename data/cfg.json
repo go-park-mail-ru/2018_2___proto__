@@ -6,6 +6,6 @@
     "dbname": "proto",
     "dbssl": "disable",
     "corsallowedhost": "https://frontend-proto.now.sh:3000",
-    "https": true,
+    "https": false,
     "port": ":8443"
 }
