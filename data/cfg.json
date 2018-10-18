@@ -1,7 +1,12 @@
 {
-    "dbconnector": "sqlite3",
-    "connectionstring": "./data/proto.db",
-    "corsallowedhost": "https://frontend-proto.now.sh:3000",
-    "https": false,
+    "dbconnector": "postgres",
+    "connectionstring": "localhost",
+    "dbport": 5432,
+    "user": "proto",
+    "password": "__proto__",
+    "dbname": "proto",
+    "dbssl": "disable",
+    "corsallowedhost": "*",
+    "https": true,
     "port": ":8443"
 }
