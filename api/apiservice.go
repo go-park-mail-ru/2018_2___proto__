@@ -2,7 +2,9 @@ package api
 
 import (
 	"database/sql"
-	_ "github.com/mattn/go-sqlite3"
+	"fmt"
+
+	_ "github.com/lib/pq"
 )
 
 type ApiService struct {
@@ -11,11 +13,17 @@ type ApiService struct {
 	Scores   IScoreStorage
 }
 
-func NewApiService(connector string, connection string) (*ApiService, error) {
-	db, err := sql.Open(connector, connection)
+func NewApiService(connector string, host string, port int, user string, password string, dbname string, ssl string) (*ApiService, error) {
+	connectionString := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=%s",
+		host, port, user, dbname, ssl)
+	fmt.Println(connectionString)
+
+	db, err := sql.Open(connector, connectionString)
 	if err != nil {
 		return nil, err
 	}
+
+	// defer db.Close()
 
 	service := &ApiService{
 		Users:    NewUserStorage(db),

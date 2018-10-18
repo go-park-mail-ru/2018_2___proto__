@@ -3,10 +3,9 @@
     "connectionstring": "localhost",
     "dbport": 5432,
     "user": "proto",
-    "password": "__proto__",
     "dbname": "proto",
     "dbssl": "disable",
-    "corsallowedhost": "*",
+    "corsallowedhost": "https://frontend-proto.now.sh:3000",
     "https": true,
     "port": ":8443"
 }
