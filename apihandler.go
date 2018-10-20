@@ -218,6 +218,6 @@ func (h *ApiHandler) AddCookie(ctx router.IContext) {
 }
 
 func (h *ApiHandler) verifyDomain(ctx router.IContext) {
-	message := "loaderio-11ac3ec8573efb3f711e381f74b6d1b8"
+	message := "loaderio-3b73ee37ac50f8785f6e274aba668913"
 	ctx.Write([]byte(message))
 }
