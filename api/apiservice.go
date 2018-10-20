@@ -13,7 +13,9 @@ type ApiService struct {
 	Scores   IScoreStorage
 }
 
-func NewApiService(connector string, host string, port int, user string, password string, dbname string, ssl string) (*ApiService, error) {
+func NewApiService(connector string, host string,
+	port int, user string, password string,
+	dbname string, ssl string) (*ApiService, error) {
 	connectionString := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=%s",
 		host, port, user, dbname, ssl)
 	fmt.Println(connectionString)
