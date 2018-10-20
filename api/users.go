@@ -8,7 +8,6 @@ import (
 	m "proto-game-server/models"
 
 	validate "github.com/asaskevich/govalidator"
-	"github.com/badoux/checkmail"
 )
 
 type IUserStorage interface {
@@ -37,7 +36,7 @@ func ScanUserFromRow(row *sql.Row) (*m.User, error) {
 }
 
 // nice func to remove repeating code
-func ThrowError(code int16, message string) *ApiResponse {
+func ThrowAPIError(code int16, message string) *ApiResponse {
 	log.Println(message)
 	return &ApiResponse{
 		Code: http.StatusBadRequest,
@@ -69,17 +68,17 @@ func ValidateUser(user *m.User) (err error) {
 	}
 
 	// check if the email is resolvable
-	err = checkmail.ValidateHost(user.Email)
-	if err != nil {
-		return err
-	}
+	// err = checkmail.ValidateHost(user.Email)
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
 
 func (u *UserStorage) Add(user *m.User) *ApiResponse {
 	if err := ValidateUser(user); err != nil {
-		return ThrowError(http.StatusBadRequest, err.Error())
+		return ThrowAPIError(http.StatusBadRequest, err.Error())
 	}
 
 	result, err := u.db.Exec(
@@ -87,7 +86,7 @@ func (u *UserStorage) Add(user *m.User) *ApiResponse {
 		user.Nickname, user.Password, user.Email, user.Fullname)
 
 	if err != nil {
-		return ThrowError(http.StatusConflict, err.Error())
+		return ThrowAPIError(http.StatusConflict, err.Error())
 	}
 
 	user.Id, _ = result.LastInsertId()
@@ -103,14 +102,14 @@ func (u *UserStorage) Remove(user *m.User) *ApiResponse {
 // TODO: user update() validation
 func (u *UserStorage) Update(user *m.User) *ApiResponse {
 	if _, err := validate.ValidateStruct(user); err != nil {
-		return ThrowError(http.StatusBadRequest, err.Error())
+		return ThrowAPIError(http.StatusBadRequest, err.Error())
 	}
 
 	row := u.db.QueryRow("SELECT id, nickname, password, fullname, email FROM user WHERE id=$1", user.Id)
 	oldUser, err := ScanUserFromRow(row)
 
 	if err != nil {
-		ThrowError(http.StatusNotFound, err.Error())
+		ThrowAPIError(http.StatusNotFound, err.Error())
 	}
 
 	if user.Nickname == "" {
@@ -132,7 +131,7 @@ func (u *UserStorage) Update(user *m.User) *ApiResponse {
 	_, err = u.db.Exec("UPDATE user SET nickname=$1, fullname=$2, password=$3, email=$4 WHERE id=$5",
 		user.Nickname, user.Fullname, user.Password, user.Email, user.Id)
 	if err != nil {
-		return ThrowError(http.StatusConflict, err.Error())
+		return ThrowAPIError(http.StatusConflict, err.Error())
 	}
 
 	return &ApiResponse{
@@ -143,8 +142,18 @@ func (u *UserStorage) Update(user *m.User) *ApiResponse {
 
 // TODO: method for recieving user's info
 func (u *UserStorage) Get(slug string) *ApiResponse {
-	return &ApiResponse{Code: 400, Response: &m.Error{1, "unimplemented api"}}
-}
+	// return &ApiResponse{Code: 400, Response: &m.Error{1, "unimplemented api"}}
+	// TODO: add check for "id" substring in order to serch for id
 
-// UPDATE user SET email = $1, WHERE nickname = $2
-// curl -X PUT -d '{"nickname":"asd1, "email":"kek@kek.os"}' localhost:8080/user/
+	row := u.db.QueryRow("SELECT id, nickname, email, fullname FROM player WHERE nickname=$1", slug)
+	user := new(m.User)
+	err := row.Scan(&user.Id, &user.Nickname, &user.Email, &user.Fullname)
+	if err != nil {
+		return ThrowAPIError(http.StatusNotFound, err.Error())
+	}
+	return &ApiResponse{
+		Code:     http.StatusOK,
+		Response: user,
+	}
+
+}
