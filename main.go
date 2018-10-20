@@ -20,7 +20,8 @@ func main() {
 	router.AddHandlerGet("/user", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.Profile)))
 	router.AddHandlerGet("/leaders/{offset}/{limit}", apiHandler.CorsEnableMiddleware(apiHandler.GetLeaders))
 	router.AddHandlerGet("/test", apiHandler.AddCookie)
-	router.AddHandlerGet("/loaderio-11ac3ec8573efb3f711e381f74b6d1b8.txt", apiHandler.verifyDomain)
+	// этот путь необходим для проведения нагрузочного тестирования
+	router.AddHandlerGet("/loaderio-3b73ee37ac50f8785f6e274aba668913.txt", apiHandler.verifyDomain)
 
 	router.AddHandlerPost("/signup", apiHandler.CorsEnableMiddleware(apiHandler.AddUser))
 	router.AddHandlerPost("/signin", apiHandler.CorsEnableMiddleware(apiHandler.Authorize))
