@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"proto-game-server/api"
 	m "proto-game-server/models"
@@ -179,11 +178,10 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 	user := new(m.User)
 	ctx.ReadJSON(user)
 
-	//тут должна быть авторизация и выдача ид сессии в куки
 	//хранилище создают сессию и возвращает нам ид сессии, который записывам в куки
 	sessionId, ok := h.apiService.Sessions.Create(user)
 	if !ok {
-		log.Printf("unauthorized request %s\n", ctx.RequestURI())
+		ctx.Logger().Debugf("unauthorized request %s\n", ctx.RequestURI())
 		WriteResponse(&api.ApiResponse{
 			Code: http.StatusBadRequest,
 			Response: &m.Error{Code: http.StatusBadRequest,
@@ -196,10 +194,10 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище
 	err := ctx.SetCookie(&http.Cookie{Name: cookieSessionIdName, Value: sessionId})
 	if err != nil {
-		log.Println(err)
+		ctx.StatusCode(http.StatusBadRequest)
+	} else {
+		ctx.StatusCode(http.StatusOK)
 	}
-
-	ctx.StatusCode(http.StatusOK)
 }
 
 func (h *ApiHandler) AddCookie(ctx router.IContext) {
@@ -214,7 +212,7 @@ func (h *ApiHandler) AddCookie(ctx router.IContext) {
 
 	err := ctx.SetCookie(cookie)
 	if err != nil {
-		log.Println(err)
+		ctx.Logger().Critical(err)
 	}
 
 	ctx.StatusCode(http.StatusOK)

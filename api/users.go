@@ -96,7 +96,7 @@ func (u *UserStorage) Update(user *m.User) *ApiResponse {
 		return ThrowAPIError(http.StatusBadRequest, err.Error())
 	}
 
-	row := u.db.QueryRow("SELECT id, nickname, password, fullname, email FROM user WHERE id=$1", user.Id)
+	row := u.db.QueryRow("SELECT id, nickname, password, fullname, email, avatar FROM user WHERE id=$1", user.Id)
 	oldUser, err := ScanUserFromRow(row)
 
 	if err != nil {
@@ -123,8 +123,8 @@ func (u *UserStorage) Update(user *m.User) *ApiResponse {
 		user.Avatar = oldUser.Avatar
 	}
 
-	_, err = u.db.Exec("UPDATE user SET nickname=$1, fullname=$2, password=$3, email=$4 WHERE id=$5",
-		user.Nickname, user.Fullname, user.Password, user.Email, user.Id)
+	_, err = u.db.Exec("UPDATE user SET nickname=$1, fullname=$2, password=$3, email=$4, avatar=$5 WHERE id=$5",
+		user.Nickname, user.Fullname, user.Password, user.Email, user.Id, user.Avatar)
 	if err != nil {
 		return ThrowAPIError(http.StatusConflict, err.Error())
 	}

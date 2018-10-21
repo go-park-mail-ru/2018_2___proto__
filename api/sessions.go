@@ -36,7 +36,7 @@ func NewSessionStorage(db *sql.DB) *SessionStorage {
 //выдача куки при авторизации
 func (s *SessionStorage) Create(user *m.User) (string, bool) {
 	row := s.db.QueryRow(
-		"SELECT id, nickname, password, fullname, email FROM player WHERE nickname=$1",
+		"SELECT id, nickname, password, fullname, email, avatar FROM player WHERE nickname=$1",
 		user.Nickname)
 	expectedUser, err := ScanUserFromRow(row)
 

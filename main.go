@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 	"github.com/op/go-logging"
-	"log"
 	"net/http"
 	"proto-game-server/router"
 )
@@ -25,7 +24,8 @@ func main() {
 		panic(err)
 	}
 
-	apiRouter := router.NewRouter(CreateLogger())
+	logger := CreateLogger()
+	apiRouter := router.NewRouter(logger)
 	apiHandler := NewApiHandler(cfg)
 
 	//урлы должны быть отсортированы по длине урла по убыванию потом жобавлю это программно
@@ -51,5 +51,5 @@ func main() {
 		err = http.ListenAndServe(cfg.Port, apiRouter)
 	}
 
-	log.Fatal(err)
+	logger.Critical(err)
 }
