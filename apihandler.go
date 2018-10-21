@@ -9,13 +9,15 @@ import (
 	"proto-game-server/router"
 	"strconv"
 	"time"
+
+	_ "github.com/lib/pq"
 )
 
 const (
-	cookieSessionIdName = "sessionId"
-	sessionCtxParamName = "session"
+	cookieSessionIdName    = "sessionId"
+	sessionCtxParamName    = "session"
 	leadersOffsetParamName = "offset"
-	leadersCountParamName = "count"
+	leadersCountParamName  = "count"
 )
 
 //посредник между сетью и логикой апи
@@ -26,7 +28,8 @@ type ApiHandler struct {
 
 //избавиться от хардкода коннекта к бд
 func NewApiHandler(settings *ServerConfig) *ApiHandler {
-	service, err := api.NewApiService(settings.DbConnector, settings.DbConnectionString)
+	service, err := api.NewApiService(
+		settings.DbConnector, settings.DbConnectionString)
 	if err != nil {
 		panic(err)
 	}
@@ -70,7 +73,10 @@ func (h *ApiHandler) DeleteUser(ctx router.IContext) {
 func (h *ApiHandler) UpdateUser(ctx router.IContext) {
 	session, ok := ctx.CtxParam(sessionCtxParamName)
 	if !ok {
-		WriteResponse(&api.ApiResponse{http.StatusNotFound, "session not found"}, ctx)
+		WriteResponse(&api.ApiResponse{
+			Code:     http.StatusNotFound,
+			Response: "Session not found"},
+			ctx)
 		return
 	}
 	session = session
@@ -93,7 +99,9 @@ func (h *ApiHandler) GetUser(ctx router.IContext) {
 func (h *ApiHandler) Profile(ctx router.IContext) {
 	data, ok := ctx.CtxParam(sessionCtxParamName)
 	if !ok {
-		WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError,Response: "ошибка поиска сессии в куках"}, ctx)
+		WriteResponse(&api.ApiResponse{
+			Code:     http.StatusInternalServerError,
+			Response: "Session not found"}, ctx)
 		return
 	}
 
@@ -108,7 +116,8 @@ func (h *ApiHandler) GetLeaders(ctx router.IContext) {
 	limit, limitErr := strconv.Atoi(params[leadersCountParamName])
 
 	if offsetErr != nil || limitErr != nil {
-		WriteResponse(&api.ApiResponse{http.StatusBadRequest, ""}, ctx)
+		WriteResponse(&api.ApiResponse{
+			http.StatusBadRequest, ""}, ctx)
 	}
 
 	WriteResponse(h.apiService.Scores.Get(offset, limit), ctx)
@@ -121,15 +130,21 @@ func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc 
 		//попытка найти сессию в хранилище сессий и вызов след обработчика если все норм
 		sessionCookie, err := ctx.GetCookie(cookieSessionIdName)
 		if err != nil {
-			WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError,Response: "ошибка поиска сессии в куках"}, ctx)
+			WriteResponse(&api.ApiResponse{
+				Code:     http.StatusNotFound,
+				Response: "Session not found"},
+				ctx)
 			return
 		}
 
 		//поиск сессии по ИД в хранилище
-		session, isSessionExists := h.apiService.Sessions.GetById(sessionCookie.Value)
+		session, sessionExists := h.apiService.Sessions.GetById(sessionCookie.Value)
 
-		if !isSessionExists {
-			WriteResponse(&api.ApiResponse{http.StatusUnauthorized, "You are not authorized"}, ctx)
+		if !sessionExists {
+			WriteResponse(&api.ApiResponse{
+				Code:     http.StatusUnauthorized,
+				Response: "You are not authorized"},
+				ctx)
 			return
 		}
 
@@ -163,7 +178,11 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 	sessionId, ok := h.apiService.Sessions.Create(user)
 	if !ok {
 		log.Printf("unauthorized request %s\n", ctx.RequestURI())
-		WriteResponse(&api.ApiResponse{Code: http.StatusBadRequest, Response: &m.Error{http.StatusBadRequest, "wrong login or password"}}, ctx)
+		WriteResponse(&api.ApiResponse{
+			Code: http.StatusBadRequest,
+			Response: &m.Error{Code: http.StatusBadRequest,
+				Message: "Wrong login or password"}},
+			ctx)
 		return
 	}
 
@@ -181,7 +200,11 @@ func (h *ApiHandler) AddCookie(ctx router.IContext) {
 	//записываем ид сессии в куки
 	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище
 	expiration := time.Now().Add(365 * 24 * time.Hour)
-	cookie := &http.Cookie{Name: "csrftoken", Value: "abcd", Expires: expiration, Path: "/"}
+	cookie := &http.Cookie{
+		Name:    "csrftoken",
+		Value:   "abcd",
+		Expires: expiration,
+		Path:    "/"}
 
 	err := ctx.SetCookie(cookie)
 	if err != nil {
@@ -190,4 +213,9 @@ func (h *ApiHandler) AddCookie(ctx router.IContext) {
 
 	ctx.StatusCode(http.StatusOK)
 	ctx.Write([]byte("COOKIE"))
+}
+
+func (h *ApiHandler) verifyDomain(ctx router.IContext) {
+	message := "loaderio-3b73ee37ac50f8785f6e274aba668913"
+	ctx.Write([]byte(message))
 }

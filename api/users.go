@@ -1,10 +1,13 @@
 package api
 
 import (
-	"log"
 	"database/sql"
+	"errors"
+	"log"
 	"net/http"
 	m "proto-game-server/models"
+
+	validate "github.com/asaskevich/govalidator"
 )
 
 type IUserStorage interface {
@@ -32,38 +35,81 @@ func ScanUserFromRow(row *sql.Row) (*m.User, error) {
 	return user, err
 }
 
-//обязательно нужно реализовать
+// nice func to remove repeating code
+func ThrowAPIError(code int16, message string) *ApiResponse {
+	log.Println(message)
+	return &ApiResponse{
+		Code: http.StatusBadRequest,
+		Response: &m.Error{
+			Code:    code,
+			Message: message}}
+}
+
+func ValidateUser(user *m.User) (err error) {
+	// this defer catches panics from smtp module
+	defer func() error {
+		if rec := recover(); rec != nil {
+			switch x := rec.(type) {
+			case string:
+				err = errors.New(x)
+			case error:
+				err = x
+			default:
+				err = errors.New("Unknown error")
+			}
+		}
+		return err
+	}()
+
+	// user fields validation
+	_, err = validate.ValidateStruct(user)
+	if err != nil {
+		return err
+	}
+
+	// check if the email is resolvable
+	// err = checkmail.ValidateHost(user.Email)
+	// if err != nil {
+	// 	return err
+	// }
+
+	return nil
+}
+
 func (u *UserStorage) Add(user *m.User) *ApiResponse {
+	if err := ValidateUser(user); err != nil {
+		return ThrowAPIError(http.StatusBadRequest, err.Error())
+	}
+
 	result, err := u.db.Exec(
-		"INSERT INTO user(nickname, password, email, fullname) VALUES ($1,$2,$3,$4);",
+		"INSERT INTO player(nickname, password, email, fullname) VALUES ($1,$2,$3,$4);",
 		user.Nickname, user.Password, user.Email, user.Fullname)
 
 	if err != nil {
-		log.Println(err)
-		return &ApiResponse{
-			Code:     409,
-			Response: &m.Error{Code: 409, Message: err.Error()}}
+		return ThrowAPIError(http.StatusConflict, err.Error())
 	}
 
 	user.Id, _ = result.LastInsertId()
 	return &ApiResponse{Code: 201, Response: user}
 }
 
+// TODO: user remove
 func (u *UserStorage) Remove(user *m.User) *ApiResponse {
 	return &ApiResponse{Code: 400, Response: &m.Error{1, "unimplemented api"}}
 }
 
 //untested. Скорее всего не работает
+// TODO: user update() validation
 func (u *UserStorage) Update(user *m.User) *ApiResponse {
+	if _, err := validate.ValidateStruct(user); err != nil {
+		return ThrowAPIError(http.StatusBadRequest, err.Error())
+	}
+
 	row := u.db.QueryRow("SELECT id, nickname, password, fullname, email FROM user WHERE id=$1", user.Id)
 	oldUser, err := ScanUserFromRow(row)
 
 	if err != nil {
-		log.Println(err)
-		return &ApiResponse{
-			Code:     http.StatusNotFound,
-			Response: &m.Error{Code: http.StatusNotFound, Message: err.Error()},
-		}
+		ThrowAPIError(http.StatusNotFound, err.Error())
 	}
 
 	if user.Nickname == "" {
@@ -82,13 +128,10 @@ func (u *UserStorage) Update(user *m.User) *ApiResponse {
 		user.Email = oldUser.Email
 	}
 
-	_, err = u.db.Exec("UPDATE user SET nickname=$1, fullname=$2, password=$3, email=$4 WHERE id=$5", user.Nickname, user.Fullname, user.Password, user.Email, user.Id)
+	_, err = u.db.Exec("UPDATE user SET nickname=$1, fullname=$2, password=$3, email=$4 WHERE id=$5",
+		user.Nickname, user.Fullname, user.Password, user.Email, user.Id)
 	if err != nil {
-		log.Println(err)
-		return &ApiResponse{
-			Code:     http.StatusConflict,
-			Response: &m.Error{Code: http.StatusConflict, Message: err.Error()},
-		}
+		return ThrowAPIError(http.StatusConflict, err.Error())
 	}
 
 	return &ApiResponse{
@@ -97,9 +140,20 @@ func (u *UserStorage) Update(user *m.User) *ApiResponse {
 	}
 }
 
+// TODO: method for recieving user's info
 func (u *UserStorage) Get(slug string) *ApiResponse {
-	return &ApiResponse{Code: 400, Response: &m.Error{1, "unimplemented api"}}
-}
+	// return &ApiResponse{Code: 400, Response: &m.Error{1, "unimplemented api"}}
+	// TODO: add check for "id" substring in order to serch for id
 
-// UPDATE user SET email = $1, WHERE nickname = $2
-// curl -X PUT -d '{"nickname":"asd1, "email":"kek@kek.os"}' localhost:8080/user/
+	row := u.db.QueryRow("SELECT id, nickname, email, fullname FROM player WHERE nickname=$1", slug)
+	user := new(m.User)
+	err := row.Scan(&user.Id, &user.Nickname, &user.Email, &user.Fullname)
+	if err != nil {
+		return ThrowAPIError(http.StatusNotFound, err.Error())
+	}
+	return &ApiResponse{
+		Code:     http.StatusOK,
+		Response: user,
+	}
+
+}
