@@ -123,6 +123,11 @@ func (h *ApiHandler) GetLeaders(ctx router.IContext) {
 	WriteResponse(h.apiService.Scores.Get(offset, limit), ctx)
 }
 
+func (h *ApiHandler) GetSession(ctx router.IContext) {
+	session, _ := ctx.CtxParam(sessionCtxParamName)
+	WriteResponse(&api.ApiResponse{Code: http.StatusOK, Response: session}, ctx)
+}
+
 //миддлварь для аутентификации
 func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc {
 	return func(ctx router.IContext) {
@@ -148,7 +153,7 @@ func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc 
 			return
 		}
 
-		ctx.AddCtxParam("session", session)
+		ctx.AddCtxParam(sessionCtxParamName, session)
 		next(ctx)
 	}
 }
@@ -167,8 +172,6 @@ func (h *ApiHandler) CorsEnableMiddleware(next router.HandlerFunc) router.Handle
 	}
 }
 
-//обработчик регистрации
-//обязательно нужно реализовать
 func (h *ApiHandler) Authorize(ctx router.IContext) {
 	user := new(m.User)
 	ctx.ReadJSON(user)
