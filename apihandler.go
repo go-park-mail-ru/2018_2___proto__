@@ -29,9 +29,7 @@ type ApiHandler struct {
 //избавиться от хардкода коннекта к бд
 func NewApiHandler(settings *ServerConfig) *ApiHandler {
 	service, err := api.NewApiService(
-		settings.DbConnector, settings.DbConnectionString,
-		settings.DbPort, settings.DbUser, settings.DbPassword,
-		settings.DbName, settings.DbSSL)
+		settings.DbConnector, settings.DbConnectionString)
 	if err != nil {
 		panic(err)
 	}

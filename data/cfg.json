@@ -1,6 +1,6 @@
 {
     "dbconnector": "postgres",
-    "connectionstring": "localhost",
+    "connectionstring": "host=localhost port=5432 user=proto dbname=proto sslmode=disable",
     "dbport": 5432,
     "user": "proto",
     "dbname": "proto",
