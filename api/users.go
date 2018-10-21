@@ -3,10 +3,9 @@ package api
 import (
 	"database/sql"
 	"errors"
-	"log"
 	"net/http"
-	m "proto-game-server/models"
 
+	m "proto-game-server/models"
 	validate "github.com/asaskevich/govalidator"
 )
 
@@ -28,16 +27,8 @@ func NewUserStorage(db *sql.DB) *UserStorage {
 	return &UserStorage{db}
 }
 
-func ScanUserFromRow(row *sql.Row) (*m.User, error) {
-	user := new(m.User)
-	err := row.Scan(&user.Id, &user.Nickname, &user.Password, &user.Fullname, &user.Email)
-
-	return user, err
-}
-
 // nice func to remove repeating code
 func ThrowAPIError(code int16, message string) *ApiResponse {
-	log.Println(message)
 	return &ApiResponse{
 		Code: http.StatusBadRequest,
 		Response: &m.Error{
@@ -128,6 +119,10 @@ func (u *UserStorage) Update(user *m.User) *ApiResponse {
 		user.Email = oldUser.Email
 	}
 
+	if user.Avatar == "" {
+		user.Avatar = oldUser.Avatar
+	}
+
 	_, err = u.db.Exec("UPDATE user SET nickname=$1, fullname=$2, password=$3, email=$4 WHERE id=$5",
 		user.Nickname, user.Fullname, user.Password, user.Email, user.Id)
 	if err != nil {
@@ -145,7 +140,7 @@ func (u *UserStorage) Get(slug string) *ApiResponse {
 	// return &ApiResponse{Code: 400, Response: &m.Error{1, "unimplemented api"}}
 	// TODO: add check for "id" substring in order to serch for id
 
-	row := u.db.QueryRow("SELECT id, nickname, email, fullname FROM player WHERE nickname=$1", slug)
+	row := u.db.QueryRow("SELECT id, nickname, email, fullname, avatar FROM player WHERE nickname=$1", slug)
 	user := new(m.User)
 	err := row.Scan(&user.Id, &user.Nickname, &user.Email, &user.Fullname)
 	if err != nil {
@@ -155,5 +150,4 @@ func (u *UserStorage) Get(slug string) *ApiResponse {
 		Code:     http.StatusOK,
 		Response: user,
 	}
-
 }

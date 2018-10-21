@@ -86,6 +86,7 @@ func (r *Router) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 
 	//если не один хэндлер не отработал, то возвращаем 404
 	ctx.StatusCode(http.StatusNotFound)
+	r.logger.Debugf("%v: %v\nstatus: %v", req.Method, req.RequestURI, http.StatusNotFound)
 }
 
 func (r *Router) LogPanic() {

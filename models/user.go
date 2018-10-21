@@ -12,6 +12,7 @@ type User struct {
 	Password string `json:"password,omitempty" valid:"required,pass"`
 	Email    string `json:"email,omitempty" valid:"required,email"`
 	Fullname string `json:"fullname,omitempty" valid:"name"`
+	Avatar   string `json:"avatar,omitempty"`
 }
 
 func init() {

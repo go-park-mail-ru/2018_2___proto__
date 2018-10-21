@@ -45,12 +45,15 @@ func NewApiHandler(settings *ServerConfig) *ApiHandler {
 func WriteResponse(response *api.ApiResponse, ctx router.IContext) {
 	data, err := json.Marshal(response.Response)
 	if err != nil {
-		log.Println(err)
+		ctx.Logger().Error(err)
+		return
 	}
 
 	ctx.ContentType("application/json")
 	ctx.StatusCode(response.Code)
 	ctx.Write(data)
+
+	ctx.Logger().Debugf("%s", response)
 }
 
 //регистрация
