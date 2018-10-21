@@ -16,6 +16,8 @@ const (
 )
 
 type IContext interface {
+	Logger() ILogger
+
 	Request() *http.Request
 
 	Writer() http.ResponseWriter
@@ -81,19 +83,25 @@ type IContext interface {
 
 type Context struct {
 	statusChanged bool
-	contextData  map[string]interface{}
-	apiUrlParser IApiUrlParser
-	r            *http.Request
-	w            http.ResponseWriter
+	contextData   map[string]interface{}
+	apiUrlParser  IApiUrlParser
+	log           ILogger
+	r             *http.Request
+	w             http.ResponseWriter
 }
 
-func NewContext(w http.ResponseWriter, r *http.Request) *Context {
+func NewContext(w http.ResponseWriter, r *http.Request, log ILogger) *Context {
 	return &Context{
 		statusChanged: false,
-		contextData: make(map[string]interface{}),
-		r:           r,
-		w:           w,
+		contextData:   make(map[string]interface{}),
+		log:           log,
+		r:             r,
+		w:             w,
 	}
+}
+
+func (c *Context) Logger() ILogger {
+	return c.log
 }
 
 func (c *Context) Request() *http.Request {
@@ -264,5 +272,5 @@ func (c *Context) SetApiParser(parser IApiUrlParser) {
 }
 
 func (c *Context) ContentType(cType string) {
-	c.w.Header().Set("Content-Type", cType) 
+	c.w.Header().Set("Content-Type", cType)
 }

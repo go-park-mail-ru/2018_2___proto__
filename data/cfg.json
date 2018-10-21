@@ -7,5 +7,5 @@
     "dbssl": "disable",
     "corsallowedhost": "https://frontend-proto.now.sh:3000",
     "https": false,
-    "port": ":8443"
+    "port": ":8080"
 }
