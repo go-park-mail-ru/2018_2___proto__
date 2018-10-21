@@ -81,12 +81,12 @@ func (u *UserStorage) Add(user *m.User) *ApiResponse {
 	}
 
 	user.Id, _ = result.LastInsertId()
-	return &ApiResponse{Code: 201, Response: user}
+	return &ApiResponse{Code: http.StatusCreated, Response: user}
 }
 
 // TODO: user remove
 func (u *UserStorage) Remove(user *m.User) *ApiResponse {
-	return &ApiResponse{Code: 400, Response: &m.Error{1, "unimplemented api"}}
+	return &ApiResponse{Code: http.StatusBadRequest, Response: &m.Error{1, "unimplemented api"}}
 }
 
 //untested. Скорее всего не работает
