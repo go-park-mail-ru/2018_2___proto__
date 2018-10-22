@@ -1,7 +1,6 @@
 package router
 
 import (
-	"log"
 	"net/http"
 )
 
@@ -14,16 +13,17 @@ var supportedMethods = []string{
 }
 
 type Router struct {
+	logger ILogger
 	routes map[string][]*Route
 }
 
-func NewRouter() *Router {
+func NewRouter(logger ILogger) *Router {
 	routes := make(map[string][]*Route)
 	for _, val := range supportedMethods {
 		routes[val] = make([]*Route, 0)
 	}
 
-	return &Router{routes}
+	return &Router{logger, routes}
 }
 
 func (r *Router) addHandlerOnMethos(urlPattern string, h HandlerFunc, httpMethod string) {
@@ -70,9 +70,10 @@ func (r *Router) AddHandlerOptions(urlPattern string, h HandlerFunc) {
 }
 
 func (r *Router) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
-	log.Printf("%v: %v", req.Method, req.RequestURI)
-	ctx := NewContext(writer, req)
+	r.logger.Debugf("%v: %v", req.Method, req.RequestURI)
+	defer r.LogPanic()
 
+	ctx := NewContext(writer, req, r.logger)
 	routes, ok := r.routes[req.Method]
 	if ok {
 		for _, route := range routes {
@@ -85,4 +86,11 @@ func (r *Router) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 
 	//если не один хэндлер не отработал, то возвращаем 404
 	ctx.StatusCode(http.StatusNotFound)
+	r.logger.Debugf("%v: %v\nstatus: %v", req.Method, req.RequestURI, http.StatusNotFound)
+}
+
+func (r *Router) LogPanic() {
+	if rec := recover(); rec != nil {
+		r.logger.Critical("PANIC!")
+	}
 }

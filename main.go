@@ -1,10 +1,22 @@
 package main
 
 import (
-	"log"
+	"os"
+	"github.com/op/go-logging"
 	"net/http"
 	"proto-game-server/router"
 )
+
+func CreateLogger() router.ILogger {
+	format := logging.MustStringFormatter(`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`)
+	backend := logging.NewLogBackend(os.Stderr, "", 0)
+	formatter := logging.NewBackendFormatter(backend, format)
+	
+	log := logging.MustGetLogger("logger")
+	logging.SetBackend(formatter)
+
+	return log
+}
 
 func main() {
 	cfg, err := LoadConfigs("./data/cfg.json")
@@ -12,30 +24,32 @@ func main() {
 		panic(err)
 	}
 
-	router := router.NewRouter()
+	logger := CreateLogger()
+	apiRouter := router.NewRouter(logger)
 	apiHandler := NewApiHandler(cfg)
 
 	//урлы должны быть отсортированы по длине урла по убыванию потом жобавлю это программно
-	router.AddHandlerGet("/user/{slug}", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.GetUser)))
-	router.AddHandlerGet("/user", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.Profile)))
-	router.AddHandlerGet("/leaders/{offset}/{limit}", apiHandler.CorsEnableMiddleware(apiHandler.GetLeaders))
-	router.AddHandlerGet("/test", apiHandler.AddCookie)
+	apiRouter.AddHandlerGet("/user/{slug}", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.GetUser)))
+	apiRouter.AddHandlerGet("/user", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.Profile)))
+	apiRouter.AddHandlerGet("/leaders/{offset}/{limit}", apiHandler.CorsEnableMiddleware(apiHandler.GetLeaders))
+	apiRouter.AddHandlerGet("/session", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.GetSession)))
+
+	apiRouter.AddHandlerPost("/signup", apiHandler.CorsEnableMiddleware(apiHandler.AddUser))
+	apiRouter.AddHandlerPost("/signin", apiHandler.CorsEnableMiddleware(apiHandler.Authorize))
+
+	apiRouter.AddHandlerDelete("/user", apiHandler.CorsEnableMiddleware(apiHandler.DeleteUser))
+	apiRouter.AddHandlerPut("/user", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.UpdateUser)))
+	apiRouter.AddHandlerOptions("/", apiHandler.CorsSetup)
+	
 	// этот путь необходим для проведения нагрузочного тестирования
-	router.AddHandlerGet("/loaderio-3b73ee37ac50f8785f6e274aba668913.txt", apiHandler.verifyDomain)
-
-	router.AddHandlerPost("/signup", apiHandler.CorsEnableMiddleware(apiHandler.AddUser))
-	router.AddHandlerPost("/signin", apiHandler.CorsEnableMiddleware(apiHandler.Authorize))
-
-	router.AddHandlerDelete("/user", apiHandler.CorsEnableMiddleware(apiHandler.DeleteUser))
-	router.AddHandlerPut("/user", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.UpdateUser)))
-	router.AddHandlerOptions("/", apiHandler.CorsSetup)
+	apiRouter.AddHandlerGet("/loaderio-3b73ee37ac50f8785f6e274aba668913.txt", apiHandler.verifyDomain)
 
 	//запускаем сервер
 	if cfg.UseHTTPS {
-		err = http.ListenAndServeTLS(cfg.Port, "fullchain.pem", "privkey.pem", router)
+		err = http.ListenAndServeTLS(cfg.Port, "fullchain.pem", "privkey.pem", apiRouter)
 	} else {
-		err = http.ListenAndServe(cfg.Port, router)
+		err = http.ListenAndServe(cfg.Port, apiRouter)
 	}
 
-	log.Fatal(err)
+	logger.Critical(err)
 }

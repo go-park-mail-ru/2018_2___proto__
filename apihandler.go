@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"proto-game-server/api"
 	m "proto-game-server/models"
@@ -29,9 +28,7 @@ type ApiHandler struct {
 //избавиться от хардкода коннекта к бд
 func NewApiHandler(settings *ServerConfig) *ApiHandler {
 	service, err := api.NewApiService(
-		settings.DbConnector, settings.DbConnectionString,
-		settings.DbPort, settings.DbUser, settings.DbPassword,
-		settings.DbName, settings.DbSSL)
+		settings.DbConnector, settings.DbConnectionString)
 	if err != nil {
 		panic(err)
 	}
@@ -45,12 +42,15 @@ func NewApiHandler(settings *ServerConfig) *ApiHandler {
 func WriteResponse(response *api.ApiResponse, ctx router.IContext) {
 	data, err := json.Marshal(response.Response)
 	if err != nil {
-		log.Println(err)
+		ctx.Logger().Error(err)
+		return
 	}
 
 	ctx.ContentType("application/json")
 	ctx.StatusCode(response.Code)
 	ctx.Write(data)
+
+	ctx.Logger().Debugf("%s", response)
 }
 
 //регистрация
@@ -125,6 +125,11 @@ func (h *ApiHandler) GetLeaders(ctx router.IContext) {
 	WriteResponse(h.apiService.Scores.Get(offset, limit), ctx)
 }
 
+func (h *ApiHandler) GetSession(ctx router.IContext) {
+	session, _ := ctx.CtxParam(sessionCtxParamName)
+	WriteResponse(&api.ApiResponse{Code: http.StatusOK, Response: session}, ctx)
+}
+
 //миддлварь для аутентификации
 func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc {
 	return func(ctx router.IContext) {
@@ -150,7 +155,7 @@ func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc 
 			return
 		}
 
-		ctx.AddCtxParam("session", session)
+		ctx.AddCtxParam(sessionCtxParamName, session)
 		next(ctx)
 	}
 }
@@ -169,17 +174,14 @@ func (h *ApiHandler) CorsEnableMiddleware(next router.HandlerFunc) router.Handle
 	}
 }
 
-//обработчик регистрации
-//обязательно нужно реализовать
 func (h *ApiHandler) Authorize(ctx router.IContext) {
 	user := new(m.User)
 	ctx.ReadJSON(user)
 
-	//тут должна быть авторизация и выдача ид сессии в куки
 	//хранилище создают сессию и возвращает нам ид сессии, который записывам в куки
 	sessionId, ok := h.apiService.Sessions.Create(user)
 	if !ok {
-		log.Printf("unauthorized request %s\n", ctx.RequestURI())
+		ctx.Logger().Debugf("unauthorized request %s\n", ctx.RequestURI())
 		WriteResponse(&api.ApiResponse{
 			Code: http.StatusBadRequest,
 			Response: &m.Error{Code: http.StatusBadRequest,
@@ -192,10 +194,10 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище
 	err := ctx.SetCookie(&http.Cookie{Name: cookieSessionIdName, Value: sessionId})
 	if err != nil {
-		log.Println(err)
+		ctx.StatusCode(http.StatusBadRequest)
+	} else {
+		ctx.StatusCode(http.StatusOK)
 	}
-
-	ctx.StatusCode(http.StatusOK)
 }
 
 func (h *ApiHandler) AddCookie(ctx router.IContext) {
@@ -210,7 +212,7 @@ func (h *ApiHandler) AddCookie(ctx router.IContext) {
 
 	err := ctx.SetCookie(cookie)
 	if err != nil {
-		log.Println(err)
+		ctx.Logger().Critical(err)
 	}
 
 	ctx.StatusCode(http.StatusOK)
