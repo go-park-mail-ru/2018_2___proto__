@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"proto-game-server/api"
 	m "proto-game-server/models"
@@ -23,12 +25,13 @@ const (
 type ApiHandler struct {
 	apiService      *api.ApiService
 	corsAllowedHost string
+	staticRoot      string
 }
 
 //избавиться от хардкода коннекта к бд
 func NewApiHandler(settings *ServerConfig) *ApiHandler {
-	service, err := api.NewApiService(
-		settings.DbConnector, settings.DbConnectionString)
+	service, err := api.NewApiService(settings.DbConnector, settings.DbConnectionString)
+
 	if err != nil {
 		panic(err)
 	}
@@ -36,6 +39,7 @@ func NewApiHandler(settings *ServerConfig) *ApiHandler {
 	return &ApiHandler{
 		apiService:      service,
 		corsAllowedHost: settings.CorsAllowedHost,
+		staticRoot:      settings.StaticRoot,
 	}
 }
 
@@ -128,6 +132,26 @@ func (h *ApiHandler) GetLeaders(ctx router.IContext) {
 func (h *ApiHandler) GetSession(ctx router.IContext) {
 	session, _ := ctx.CtxParam(sessionCtxParamName)
 	WriteResponse(&api.ApiResponse{Code: http.StatusOK, Response: session}, ctx)
+}
+
+func (h *ApiHandler) Test(ctx router.IContext) {
+	ctx.StatusCode(http.StatusOK)
+}
+
+func (h *ApiHandler) GetStatic(ctx router.IContext) {
+	params := ctx.UrlParams()
+	file := fmt.Sprintf("%v/%v", h.staticRoot, params["file"])
+
+	bytes, err := ioutil.ReadFile(file)
+	if err != nil {
+		ctx.Logger().Error(err)
+		ctx.StatusCode(http.StatusNotFound)
+		return
+	}
+
+	ctx.StatusCode(http.StatusOK)
+	ctx.ContentType("image/png")
+	ctx.Write(bytes)
 }
 
 //миддлварь для аутентификации
