@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"proto-game-server/api"
 	m "proto-game-server/models"
 	"proto-game-server/router"
@@ -152,6 +154,38 @@ func (h *ApiHandler) GetStatic(ctx router.IContext) {
 	ctx.StatusCode(http.StatusOK)
 	ctx.ContentType("image/png")
 	ctx.Write(bytes)
+}
+
+func (h *ApiHandler) Upload(ctx router.IContext) {
+	r := ctx.Request()
+
+	// the FormFile function takes in the POST input id file
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		WriteResponse(&api.ApiResponse{Code: http.StatusBadRequest, Response: err}, ctx)
+		return
+	}
+
+	defer file.Close()
+
+	fileName := fmt.Sprintf("%v-%v", time.Now(), header.Filename)
+	out, err := os.Create(fileName)
+	if err != nil {
+		WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError, Response: err}, ctx)
+		return
+	}
+
+	defer out.Close()
+
+	// write the content from POST to the file
+	_, err = io.Copy(out, file)
+	if err != nil {
+		file := &m.File{fileName}
+		WriteResponse(&api.ApiResponse{Code: http.StatusBadRequest, Response: file}, ctx)
+		return
+	}
+
+	WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError, Response: err}, ctx)
 }
 
 //миддлварь для аутентификации
