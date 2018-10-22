@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"proto-game-server/api"
 	m "proto-game-server/models"
@@ -138,8 +140,18 @@ func (h *ApiHandler) Test(ctx router.IContext) {
 
 func (h *ApiHandler) GetStatic(ctx router.IContext) {
 	params := ctx.UrlParams()
-	file := params["file"]
-	file = file
+	file := fmt.Sprintf("%v/%v", h.staticRoot, params["file"])
+
+	bytes, err := ioutil.ReadFile(file)
+	if err != nil {
+		ctx.Logger().Error(err)
+		ctx.StatusCode(http.StatusNotFound)
+		return
+	}
+
+	ctx.StatusCode(http.StatusOK)
+	ctx.ContentType("image/png")
+	ctx.Write(bytes)
 }
 
 //миддлварь для аутентификации
