@@ -9,14 +9,10 @@ import (
 type ServerConfig struct {
 	DbConnector        string `json:"dbconnector"`
 	DbConnectionString string `json:"connectionstring"`
-	DbPort             int    `json:"dbport"`
-	DbUser             string `json:"user"`
-	DbPassword         string `json:"password"`
-	DbName             string `json:"dbname"`
-	DbSSL              string `json:"dbssl"`
 	CorsAllowedHost    string `json:"corsallowedhost"`
 	UseHTTPS           bool   `json:"https"`
 	Port               string `json:"port"`
+	StaticRoot         string `json:"staticroot"`
 }
 
 func LoadConfigs(path string) (*ServerConfig, error) {
