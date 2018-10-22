@@ -5,7 +5,7 @@
     "user": "proto",
     "dbname": "proto",
     "dbssl": "disable",
-    "corsallowedhost": "https://frontend-proto.now.sh:3000, http://rasseki.pro:3000",
+    "corsallowedhost": "http://rasseki.pro:3000",
     "https": false,
     "port": ":8443"
 }
