@@ -34,6 +34,7 @@ func main() {
 	apiRouter.AddHandlerGet("/leaders/{offset}/{limit}", apiHandler.CorsEnableMiddleware(apiHandler.GetLeaders))
 	apiRouter.AddHandlerGet("/session", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.GetSession)))
 	apiRouter.AddHandlerGet("/static/{file}", apiHandler.CorsEnableMiddleware(apiHandler.GetStatic))
+	apiRouter.AddHandlerGet("/test", apiHandler.Test)
 
 	apiRouter.AddHandlerPost("/signup", apiHandler.CorsEnableMiddleware(apiHandler.AddUser))
 	apiRouter.AddHandlerPost("/signin", apiHandler.CorsEnableMiddleware(apiHandler.Authorize))
