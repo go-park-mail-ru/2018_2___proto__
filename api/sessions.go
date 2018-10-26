@@ -3,7 +3,9 @@ package api
 import (
 	"database/sql"
 	"log"
+	"net/http"
 	m "proto-game-server/models"
+	"time"
 
 	"github.com/satori/go.uuid"
 )
@@ -23,14 +25,12 @@ type ISessionStorage interface {
 }
 
 type SessionStorage struct {
-	db      *sql.DB
-	storage map[string]*m.Session
+	db *sql.DB
 }
 
 //нужно реализовать
 func NewSessionStorage(db *sql.DB) *SessionStorage {
-	return &SessionStorage{db: db, storage: make(map[string]*m.Session)}
-
+	return &SessionStorage{db: db}
 }
 
 //выдача куки при авторизации
@@ -56,19 +56,48 @@ func (s *SessionStorage) Create(user *m.User) (string, bool) {
 	}
 
 	sessionToken := UUID.String()
-
-	s.storage[sessionToken] = &m.Session{Id: sessionToken, User: expectedUser}
-
+	expirationDate := time.Now().Unix() + 86400
+	_, err = s.db.Exec("INSERT INTO user_session(token, player_id, expired_date) VALUES ($1, $2, $3);",
+		sessionToken, expectedUser.Id, expirationDate)
+	if err != nil {
+		print(err.Error())
+		row = s.db.QueryRow(
+			"SELECT token FROM user_session WHERE player_id=$1",
+			expectedUser.Id)
+		err = row.Scan(&sessionToken)
+		if err != nil {
+			return "", false
+		}
+	}
 	return sessionToken, true
 }
 
 func (s *SessionStorage) Remove(user *m.Session) *ApiResponse {
-	return &ApiResponse{Code: 400, Response: &m.Error{1, "unimplemented api"}}
+	_, err := s.db.Exec(
+		"DELETE FROM user_session WHERE id=$1;", user.Id)
+	if err != nil {
+		return &ApiResponse{
+			Code: http.StatusNotFound,
+			Response: &m.Error{
+				Code:    http.StatusNotFound,
+				Message: err.Error()}}
+	}
+
+	return &ApiResponse{
+		Code:     http.StatusGone,
+		Response: "Session terminated."}
 }
 
-func (s *SessionStorage) GetById(id string) (*m.Session, bool) {
-	session, ok := s.storage[id]
+func (s *SessionStorage) GetById(token string) (*m.Session, bool) {
+	row := s.db.QueryRow(
+		"SELECT user_session.id, user_session.token, user_session.player_id, user_session.expired_date, player.id, player.nickname, player.password, player.fullname, player.email, player.avatar FROM user_session, player WHERE user_session.token=$1;",
+		token)
+	session, err := ScanSessionFromRow(row)
+	ok := true
+	if err != nil {
+		print(err.Error())
+		ok = false
+	}
+
 	return session, ok
 }
-
-// curl -d '{"nickname":"asd21","password":"1231",}' localhost:8080/user/signin

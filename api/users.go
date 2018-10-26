@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	m "proto-game-server/models"
+
 	validate "github.com/asaskevich/govalidator"
 )
 
@@ -30,7 +31,7 @@ func NewUserStorage(db *sql.DB) *UserStorage {
 // nice func to remove repeating code
 func ThrowAPIError(code int16, message string) *ApiResponse {
 	return &ApiResponse{
-		Code: http.StatusBadRequest,
+		Code: int(code),
 		Response: &m.Error{
 			Code:    code,
 			Message: message}}
@@ -84,13 +85,23 @@ func (u *UserStorage) Add(user *m.User) *ApiResponse {
 	return &ApiResponse{Code: http.StatusCreated, Response: user}
 }
 
-// TODO: user remove
+// TODO: remove user's session
 func (u *UserStorage) Remove(user *m.User) *ApiResponse {
-	return &ApiResponse{Code: http.StatusBadRequest, Response: &m.Error{1, "unimplemented api"}}
+
+	// это работает в консоли pgsql, но не работает тут ¯\_(ツ)_/¯
+	_, err := u.db.Exec(
+		"DELETE FROM player WHERE id=$1;", user.Id)
+	print(err.Error())
+	if err != nil {
+		return ThrowAPIError(http.StatusNotFound, err.Error())
+	}
+
+	return &ApiResponse{
+		Code:     http.StatusGone,
+		Response: "User removed."}
 }
 
-//untested. Скорее всего не работает
-// TODO: user update() validation
+// untested
 func (u *UserStorage) Update(user *m.User) *ApiResponse {
 	if _, err := validate.ValidateStruct(user); err != nil {
 		return ThrowAPIError(http.StatusBadRequest, err.Error())
@@ -137,12 +148,11 @@ func (u *UserStorage) Update(user *m.User) *ApiResponse {
 
 // TODO: method for recieving user's info
 func (u *UserStorage) Get(slug string) *ApiResponse {
-	// return &ApiResponse{Code: 400, Response: &m.Error{1, "unimplemented api"}}
 	// TODO: add check for "id" substring in order to serch for id
 
 	row := u.db.QueryRow("SELECT id, nickname, email, fullname, avatar FROM player WHERE nickname=$1", slug)
 	user := new(m.User)
-	err := row.Scan(&user.Id, &user.Nickname, &user.Email, &user.Fullname)
+	err := row.Scan(&user.Id, &user.Nickname, &user.Email, &user.Fullname, &user.Avatar)
 	if err != nil {
 		return ThrowAPIError(http.StatusNotFound, err.Error())
 	}

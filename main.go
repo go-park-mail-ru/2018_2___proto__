@@ -1,17 +1,18 @@
 package main
 
 import (
-	"os"
-	"github.com/op/go-logging"
 	"net/http"
+	"os"
 	"proto-game-server/router"
+
+	"github.com/op/go-logging"
 )
 
 func CreateLogger() router.ILogger {
-	format := logging.MustStringFormatter(`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`)
+	format := logging.MustStringFormatter(`%{color}%{time:15:04:05.000} %{shortfunc} > %{level:.4s} %{id:03x}%{color:reset} %{message}`)
 	backend := logging.NewLogBackend(os.Stderr, "", 0)
 	formatter := logging.NewBackendFormatter(backend, format)
-	
+
 	log := logging.MustGetLogger("logger")
 	logging.SetBackend(formatter)
 
@@ -42,7 +43,7 @@ func main() {
 	apiRouter.AddHandlerPut("/user", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.UpdateUser)))
 	apiRouter.AddHandlerDelete("/user", apiHandler.CorsEnableMiddleware(apiHandler.DeleteUser))
 	apiRouter.AddHandlerOptions("/", apiHandler.CorsSetup)
-	
+
 	// этот путь необходим для проведения нагрузочного тестирования
 	apiRouter.AddHandlerGet("/loaderio-3b73ee37ac50f8785f6e274aba668913.txt", apiHandler.verifyDomain)
 
