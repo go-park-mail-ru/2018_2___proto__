@@ -1,9 +1,8 @@
-package tests
+package router
 
 import (
 	"net/http"
 	"net/http/httptest"
-	"proto-game-server/router"
 	"testing"
 )
 
@@ -29,13 +28,13 @@ type HttpTestCase struct {
 	code   int
 }
 
-func Authorize(ctx router.IContext) {
+func Authorize(ctx IContext) {
 	ctx.Write([]byte("OK"))
 	ctx.StatusCode(http.StatusOK)
 }
 
 func TestRouting(t *testing.T) {
-	apiRouter := router.NewRouter(nil)
+	apiRouter := NewRouter(nil)
 	apiRouter.AddHandlerGet("/test", Authorize)
 
 	testCases := []*HttpTestCase{
