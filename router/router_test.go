@@ -29,17 +29,34 @@ type HttpTestCase struct {
 }
 
 func Authorize(ctx IContext) {
-	ctx.Write([]byte("OK"))
 	ctx.StatusCode(http.StatusOK)
+}
+
+func Panic(ctx IContext) {
+	ctx.StatusCode(http.StatusInternalServerError)
+	panic("panic")
 }
 
 func TestRouting(t *testing.T) {
 	apiRouter := NewRouter(nil)
 	apiRouter.AddHandlerGet("/test", Authorize)
+	apiRouter.AddHandlerPost("/panic", Panic)
+	apiRouter.AddHandlerDelete("/empty", Authorize)
+	apiRouter.AddHandlerOptions("/empty", Authorize)
+	apiRouter.AddHandlerPut("/empty", Authorize)
+	apiRouter.AddHandler("/all", Authorize)
 
 	testCases := []*HttpTestCase{
 		&HttpTestCase{http.MethodGet, "/test", http.StatusOK},
+		&HttpTestCase{http.MethodPost, "/panic", http.StatusInternalServerError},
 		&HttpTestCase{http.MethodPost, "/empty", http.StatusNotFound},
+		&HttpTestCase{http.MethodDelete, "/empty", http.StatusOK},
+		&HttpTestCase{http.MethodOptions, "/empty", http.StatusOK},
+		&HttpTestCase{http.MethodGet, "/all", http.StatusOK},
+		&HttpTestCase{http.MethodPost, "/all", http.StatusOK},
+		&HttpTestCase{http.MethodPut, "/all", http.StatusOK},
+		&HttpTestCase{http.MethodDelete, "/all", http.StatusOK},
+		&HttpTestCase{http.MethodOptions, "/all", http.StatusOK},
 	}
 
 	for _, testCase := range testCases {

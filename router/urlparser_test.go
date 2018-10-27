@@ -1,7 +1,6 @@
-package tests
+package router
 
 import (
-	"proto-game-server/router"
 	"reflect"
 	"testing"
 )
@@ -30,7 +29,7 @@ func TestPattern(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		parser, err := router.NewApiUrlParser(c.inputPattern)
+		parser, err := NewApiUrlParser(c.inputPattern)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -62,7 +61,7 @@ func TestParsing(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		parser, err := router.NewApiUrlParser(c.pattern)
+		parser, err := NewApiUrlParser(c.pattern)
 		if err != nil {
 			t.Fatal(err)
 		}
