@@ -18,6 +18,10 @@ type Router struct {
 }
 
 func NewRouter(logger ILogger) *Router {
+	if logger == nil {
+		logger = NewDefaultLogger()
+	}
+
 	routes := make(map[string][]*Route)
 	for _, val := range supportedMethods {
 		routes[val] = make([]*Route, 0)

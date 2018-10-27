@@ -258,6 +258,7 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 	}
 }
 
+//function for testing cooie adding
 func (h *ApiHandler) AddCookie(ctx router.IContext) {
 	//записываем ид сессии в куки
 	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище
