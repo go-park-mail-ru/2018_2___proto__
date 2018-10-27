@@ -19,24 +19,24 @@ CREATE TABLE player (
 CREATE TABLE user_session (
     id           serial NOT NULL PRIMARY KEY,
     token        text NOT NULL UNIQUE,
-    player_id    integer NOT NULL,
+    player_id    integer NOT NULL UNIQUE,
     expired_date integer NOT NULL,
-    FOREIGN KEY (player_id) REFERENCES player(id)
+    FOREIGN KEY (player_id) REFERENCES player(id) ON DELETE CASCADE
 );
 
 CREATE TABLE score (
     id        serial NOT NULL PRIMARY KEY,
     score     integer NOT NULL,
     player_id integer NOT NULL,
-    FOREIGN KEY (player_id) REFERENCES player(id)
+    FOREIGN KEY (player_id) REFERENCES player(id)  ON DELETE CASCADE
 );
 
 CREATE TABLE friendship (
     id  serial NOT NULL PRIMARY KEY,
     id1 integer NOT NULL,
     id2 integer NOT NULL,
-    FOREIGN KEY (id1) REFERENCES player(id),
-    FOREIGN KEY (id2) REFERENCES player(id)
+    FOREIGN KEY (id1) REFERENCES player(id) ON DELETE CASCADE,
+    FOREIGN KEY (id2) REFERENCES player(id) ON DELETE CASCADE
 );
 
 CREATE TABLE question (
