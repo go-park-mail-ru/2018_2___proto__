@@ -252,8 +252,10 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище
 	err := ctx.SetCookie(&http.Cookie{Name: cookieSessionIdName, Value: sessionId})
 	if err != nil {
+		ctx.Logger().Error(fmt.Sprintf("FAILED TO WRITE SESSION TO COOKIE %v", sessionId))
 		ctx.StatusCode(http.StatusBadRequest)
 	} else {
+		ctx.Logger().Notice(sessionId)
 		ctx.StatusCode(http.StatusOK)
 	}
 }
