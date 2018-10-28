@@ -1,21 +1,21 @@
 package main
 
 import (
-	"proto-game-server/router"
-	"proto-game-server/game"
-	"proto-game-server/api"
 	"encoding/json"
-	"io/ioutil"
-	"net/http"
-	"strconv"
-	"time"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"net/http"
 	"os"
+	"proto-game-server/api"
+	"proto-game-server/game"
+	"proto-game-server/router"
+	"strconv"
+	"time"
 
 	ws "github.com/gorilla/websocket"
-	m "proto-game-server/models"
 	_ "github.com/lib/pq"
+	m "proto-game-server/models"
 )
 
 const (
@@ -33,27 +33,27 @@ var upgrader = ws.Upgrader{
 //посредник между сетью и логикой апи
 type NetworkHandler struct {
 	apiService      *api.ApiService
-	game 			*game.Game
+	game            *game.Game
 	corsAllowedHost string
 	staticRoot      string
 }
 
 //избавиться от хардкода коннекта к бд
-func NewNetworkHandler(settings *ServerConfig) *NetworkHandler {
+func NewNetworkHandler(settings *ServerConfig, logger router.ILogger) *NetworkHandler {
 	service, err := api.NewApiService(settings.DbConnector, settings.DbConnectionString)
 
 	if err != nil {
 		panic(err)
 	}
 
-	game := game.NewGame()
+	game := game.NewGame(logger)
 	go game.Start()
 
 	return &NetworkHandler{
 		corsAllowedHost: settings.CorsAllowedHost,
 		apiService:      service,
 		staticRoot:      settings.StaticRoot,
-		game: 			 game,
+		game:            game,
 	}
 }
 
@@ -299,6 +299,7 @@ func (h *NetworkHandler) AddCookie(ctx router.IContext) {
 	ctx.Write([]byte("COOKIE"))
 }
 
+//curl -s -i -N --cookie "sessionId=f00ecc53-c4d6-4ba5-847e-e64675af6fda" -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Sec-WebSocket-Version: 13" -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" http://localhost:8443/game
 func (h *NetworkHandler) ConnectPlayer(ctx router.IContext) {
 	w := ctx.Writer()
 	r := ctx.Request()

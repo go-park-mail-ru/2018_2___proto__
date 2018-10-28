@@ -13,3 +13,10 @@ type Player struct {
 func NewPlayer(session *m.Session, conn *ws.Conn) *Player {
 	return &Player{session, conn}
 }
+
+func (p *Player) ReadCommand() (*Command, error){
+	command := &Command{}
+	err := p.conn.ReadJSON(command)
+
+	return command, err
+}
