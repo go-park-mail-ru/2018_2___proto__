@@ -3,8 +3,8 @@ package main
 import (
 	"net/http"
 	"os"
-	"proto-game-server/router"
 
+	"proto-game-server/router"
 	"github.com/op/go-logging"
 )
 

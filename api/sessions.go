@@ -2,12 +2,12 @@ package api
 
 import (
 	"database/sql"
-	"log"
 	"net/http"
-	m "proto-game-server/models"
 	"time"
+	"log"
 
 	"github.com/satori/go.uuid"
+	m "proto-game-server/models"
 )
 
 type ISessionStorage interface {
@@ -49,14 +49,10 @@ func (s *SessionStorage) Create(user *m.User) (string, bool) {
 		return "", false
 	}
 
-	UUID, err := uuid.NewV4()
-	if err != nil {
-		log.Print(err)
-		return "", false
-	}
-
+	UUID := uuid.NewV4()
 	sessionToken := UUID.String()
 	expirationDate := time.Now().Unix() + 86400
+	
 	_, err = s.db.Exec("INSERT INTO user_session(token, player_id, expired_date) VALUES ($1, $2, $3);",
 		sessionToken, expectedUser.Id, expirationDate)
 	if err != nil {
