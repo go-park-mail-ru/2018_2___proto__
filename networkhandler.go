@@ -1,18 +1,20 @@
 package main
 
 import (
+	"proto-game-server/router"
+	"proto-game-server/game"
+	"proto-game-server/api"
 	"encoding/json"
-	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"proto-game-server/api"
-	m "proto-game-server/models"
-	"proto-game-server/router"
 	"strconv"
 	"time"
+	"fmt"
+	"io"
+	"os"
 
+	ws "github.com/gorilla/websocket"
+	m "proto-game-server/models"
 	_ "github.com/lib/pq"
 )
 
@@ -23,25 +25,35 @@ const (
 	leadersCountParamName  = "count"
 )
 
+var upgrader = ws.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
+
 //посредник между сетью и логикой апи
-type ApiHandler struct {
+type NetworkHandler struct {
 	apiService      *api.ApiService
+	game 			*game.Game
 	corsAllowedHost string
 	staticRoot      string
 }
 
 //избавиться от хардкода коннекта к бд
-func NewApiHandler(settings *ServerConfig) *ApiHandler {
+func NewNetworkHandler(settings *ServerConfig) *NetworkHandler {
 	service, err := api.NewApiService(settings.DbConnector, settings.DbConnectionString)
 
 	if err != nil {
 		panic(err)
 	}
 
-	return &ApiHandler{
-		apiService:      service,
+	game := game.NewGame()
+	go game.Start()
+
+	return &NetworkHandler{
 		corsAllowedHost: settings.CorsAllowedHost,
+		apiService:      service,
 		staticRoot:      settings.StaticRoot,
+		game: 			 game,
 	}
 }
 
@@ -59,9 +71,56 @@ func WriteResponse(response *api.ApiResponse, ctx router.IContext) {
 	ctx.Logger().Debugf("%s", response)
 }
 
-//регистрация
-//обязательно нужно реализовать
-func (h *ApiHandler) AddUser(ctx router.IContext) {
+//миддлварь для аутентификации
+func (h *NetworkHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc {
+	return func(ctx router.IContext) {
+		//тут должно быть получение id сессии из кукисов
+		//попытка найти сессию в хранилище сессий и вызов след обработчика если все норм
+		sessionCookie, err := ctx.GetCookie(cookieSessionIdName)
+		if err != nil {
+			WriteResponse(&api.ApiResponse{
+				Code:     http.StatusNotFound,
+				Response: "Session not found"},
+				ctx)
+			return
+		}
+
+		//поиск сессии по ИД в хранилище
+		session, sessionExists := h.apiService.Sessions.GetById(sessionCookie.Value)
+
+		if !sessionExists || !session.IsAlive() {
+			WriteResponse(&api.ApiResponse{
+				Code:     http.StatusUnauthorized,
+				Response: "You are not authorized"},
+				ctx)
+			return
+		}
+
+		ctx.AddCtxParam(sessionCtxParamName, session)
+		next(ctx)
+	}
+}
+
+//настройка cors'a
+func (h *NetworkHandler) CorsSetup(ctx router.IContext) {
+	ctx.Header("Access-Control-Allow-Origin", h.corsAllowedHost)
+	ctx.Header("Access-Control-Allow-Credentials", "true")
+	ctx.Header("Access-Control-Allow-Headers", "Content-Type")
+}
+
+func (h *NetworkHandler) CorsEnableMiddleware(next router.HandlerFunc) router.HandlerFunc {
+	return func(ctx router.IContext) {
+		h.CorsSetup(ctx)
+		next(ctx)
+	}
+}
+
+func (h *NetworkHandler) verifyDomain(ctx router.IContext) {
+	message := "loaderio-3b73ee37ac50f8785f6e274aba668913"
+	ctx.Write([]byte(message))
+}
+
+func (h *NetworkHandler) AddUser(ctx router.IContext) {
 	user := new(m.User)
 	ctx.ReadJSON(user)
 
@@ -71,14 +130,14 @@ func (h *ApiHandler) AddUser(ctx router.IContext) {
 	WriteResponse(h.apiService.Users.Add(user), ctx)
 }
 
-func (h *ApiHandler) DeleteUser(ctx router.IContext) {
+func (h *NetworkHandler) DeleteUser(ctx router.IContext) {
 	user := new(m.User)
 	ctx.ReadJSON(user)
 
 	WriteResponse(h.apiService.Users.Remove(user), ctx)
 }
 
-func (h *ApiHandler) UpdateUser(ctx router.IContext) {
+func (h *NetworkHandler) UpdateUser(ctx router.IContext) {
 	session, ok := ctx.CtxParam(sessionCtxParamName)
 	if !ok {
 		WriteResponse(&api.ApiResponse{
@@ -95,7 +154,7 @@ func (h *ApiHandler) UpdateUser(ctx router.IContext) {
 	WriteResponse(h.apiService.Users.Update(user), ctx)
 }
 
-func (h *ApiHandler) GetUser(ctx router.IContext) {
+func (h *NetworkHandler) GetUser(ctx router.IContext) {
 	user := new(m.User)
 	ctx.ReadJSON(user)
 
@@ -104,7 +163,7 @@ func (h *ApiHandler) GetUser(ctx router.IContext) {
 	WriteResponse(h.apiService.Users.Get(params["slug"]), ctx)
 }
 
-func (h *ApiHandler) Profile(ctx router.IContext) {
+func (h *NetworkHandler) Profile(ctx router.IContext) {
 	data, ok := ctx.CtxParam(sessionCtxParamName)
 	if !ok {
 		WriteResponse(&api.ApiResponse{
@@ -117,7 +176,7 @@ func (h *ApiHandler) Profile(ctx router.IContext) {
 	WriteResponse(&api.ApiResponse{Code: http.StatusOK, Response: session.User}, ctx)
 }
 
-func (h *ApiHandler) GetLeaders(ctx router.IContext) {
+func (h *NetworkHandler) GetLeaders(ctx router.IContext) {
 	params := ctx.UrlParams()
 
 	offset, offsetErr := strconv.Atoi(params[leadersOffsetParamName])
@@ -131,16 +190,16 @@ func (h *ApiHandler) GetLeaders(ctx router.IContext) {
 	WriteResponse(h.apiService.Scores.Get(offset, limit), ctx)
 }
 
-func (h *ApiHandler) GetSession(ctx router.IContext) {
+func (h *NetworkHandler) GetSession(ctx router.IContext) {
 	session, _ := ctx.CtxParam(sessionCtxParamName)
 	WriteResponse(&api.ApiResponse{Code: http.StatusOK, Response: session}, ctx)
 }
 
-func (h *ApiHandler) Test(ctx router.IContext) {
+func (h *NetworkHandler) Test(ctx router.IContext) {
 	ctx.StatusCode(http.StatusOK)
 }
 
-func (h *ApiHandler) GetStatic(ctx router.IContext) {
+func (h *NetworkHandler) GetStatic(ctx router.IContext) {
 	params := ctx.UrlParams()
 	file := fmt.Sprintf("%v/%v", h.staticRoot, params["file"])
 
@@ -156,7 +215,7 @@ func (h *ApiHandler) GetStatic(ctx router.IContext) {
 	ctx.Write(bytes)
 }
 
-func (h *ApiHandler) Upload(ctx router.IContext) {
+func (h *NetworkHandler) Upload(ctx router.IContext) {
 	r := ctx.Request()
 
 	// the FormFile function takes in the POST input id file
@@ -188,51 +247,7 @@ func (h *ApiHandler) Upload(ctx router.IContext) {
 	WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError, Response: err}, ctx)
 }
 
-//миддлварь для аутентификации
-func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc {
-	return func(ctx router.IContext) {
-		//тут должно быть получение id сессии из кукисов
-		//попытка найти сессию в хранилище сессий и вызов след обработчика если все норм
-		sessionCookie, err := ctx.GetCookie(cookieSessionIdName)
-		if err != nil {
-			WriteResponse(&api.ApiResponse{
-				Code:     http.StatusNotFound,
-				Response: "Session not found"},
-				ctx)
-			return
-		}
-
-		//поиск сессии по ИД в хранилище
-		session, sessionExists := h.apiService.Sessions.GetById(sessionCookie.Value)
-
-		if !sessionExists || session.TTL <= time.Now().Unix() {
-			WriteResponse(&api.ApiResponse{
-				Code:     http.StatusUnauthorized,
-				Response: "You are not authorized"},
-				ctx)
-			return
-		}
-
-		ctx.AddCtxParam(sessionCtxParamName, session)
-		next(ctx)
-	}
-}
-
-//настройка cors'a
-func (h *ApiHandler) CorsSetup(ctx router.IContext) {
-	ctx.Header("Access-Control-Allow-Origin", h.corsAllowedHost)
-	ctx.Header("Access-Control-Allow-Credentials", "true")
-	ctx.Header("Access-Control-Allow-Headers", "Content-Type")
-}
-
-func (h *ApiHandler) CorsEnableMiddleware(next router.HandlerFunc) router.HandlerFunc {
-	return func(ctx router.IContext) {
-		h.CorsSetup(ctx)
-		next(ctx)
-	}
-}
-
-func (h *ApiHandler) Authorize(ctx router.IContext) {
+func (h *NetworkHandler) Authorize(ctx router.IContext) {
 	user := new(m.User)
 	ctx.ReadJSON(user)
 
@@ -260,12 +275,12 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 	}
 }
 
-func (h *ApiHandler) Panic(ctx router.IContext) {
+func (h *NetworkHandler) Panic(ctx router.IContext) {
 	panic("panic")
 }
 
 //function for testing cooie adding
-func (h *ApiHandler) AddCookie(ctx router.IContext) {
+func (h *NetworkHandler) AddCookie(ctx router.IContext) {
 	//записываем ид сессии в куки
 	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище
 	expiration := time.Now().Add(365 * 24 * time.Hour)
@@ -284,7 +299,19 @@ func (h *ApiHandler) AddCookie(ctx router.IContext) {
 	ctx.Write([]byte("COOKIE"))
 }
 
-func (h *ApiHandler) verifyDomain(ctx router.IContext) {
-	message := "loaderio-3b73ee37ac50f8785f6e274aba668913"
-	ctx.Write([]byte(message))
+func (h *NetworkHandler) ConnectPlayer(ctx router.IContext) {
+	w := ctx.Writer()
+	r := ctx.Request()
+
+	sessionData, _ := ctx.CtxParam(sessionCtxParamName)
+	session := sessionData.(*m.Session)
+
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		WriteResponse(&api.ApiResponse{Code: http.StatusBadRequest, Response: err}, ctx)
+		return
+	}
+
+	player := game.NewPlayer(session, conn)
+	h.game.AddPlayer(player)
 }
