@@ -2,12 +2,12 @@ package api
 
 import (
 	"database/sql"
-	"log"
 	"net/http"
-	m "proto-game-server/models"
 	"time"
+	"log"
 
 	"github.com/satori/go.uuid"
+	m "proto-game-server/models"
 )
 
 type ISessionStorage interface {
@@ -49,14 +49,10 @@ func (s *SessionStorage) Create(user *m.User) (string, bool) {
 		return "", false
 	}
 
-	UUID, err := uuid.NewV4()
-	if err != nil {
-		log.Print(err)
-		return "", false
-	}
-
+	UUID := uuid.NewV4()
 	sessionToken := UUID.String()
 	expirationDate := time.Now().Unix() + 86400
+	
 	_, err = s.db.Exec("INSERT INTO user_session(token, player_id, expired_date) VALUES ($1, $2, $3);",
 		sessionToken, expectedUser.Id, expirationDate)
 	if err != nil {
@@ -72,9 +68,12 @@ func (s *SessionStorage) Create(user *m.User) (string, bool) {
 	return sessionToken, true
 }
 
-func (s *SessionStorage) Remove(user *m.Session) *ApiResponse {
-	_, err := s.db.Exec(
-		"DELETE FROM user_session WHERE id=$1;", user.Id)
+func (s *SessionStorage) Remove(session *m.Session) *ApiResponse {
+	_, err := s.db.Exec(`UPDATE user_session SET ttl=$1 WHERE token=$2`,
+		time.Now().Unix(),
+		session.Token,
+	)
+
 	if err != nil {
 		return &ApiResponse{
 			Code: http.StatusNotFound,
@@ -89,9 +88,12 @@ func (s *SessionStorage) Remove(user *m.Session) *ApiResponse {
 }
 
 func (s *SessionStorage) GetById(token string) (*m.Session, bool) {
-	row := s.db.QueryRow(
-		"SELECT user_session.id, user_session.token, user_session.player_id, user_session.expired_date, player.id, player.nickname, player.password, player.fullname, player.email, player.avatar FROM user_session, player WHERE user_session.token=$1;",
-		token)
+	row := s.db.QueryRow(`SELECT user_session.id, user_session.token, user_session.player_id, user_session.expired_date, player.id, player.nickname, player.password, player.fullname, player.email, player.avatar 
+	FROM user_session, player 
+	WHERE user_session.token=$1;`,
+		token,
+	)
+
 	session, err := ScanSessionFromRow(row)
 	ok := true
 	if err != nil {

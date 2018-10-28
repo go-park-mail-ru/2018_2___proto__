@@ -205,7 +205,7 @@ func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc 
 		//поиск сессии по ИД в хранилище
 		session, sessionExists := h.apiService.Sessions.GetById(sessionCookie.Value)
 
-		if !sessionExists {
+		if !sessionExists || session.TTL <= time.Now().Unix() {
 			WriteResponse(&api.ApiResponse{
 				Code:     http.StatusUnauthorized,
 				Response: "You are not authorized"},
@@ -252,12 +252,15 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище
 	err := ctx.SetCookie(&http.Cookie{Name: cookieSessionIdName, Value: sessionId})
 	if err != nil {
+		ctx.Logger().Error(fmt.Sprintf("FAILED TO WRITE SESSION TO COOKIE %v", sessionId))
 		ctx.StatusCode(http.StatusBadRequest)
 	} else {
+		ctx.Logger().Notice(sessionId)
 		ctx.StatusCode(http.StatusOK)
 	}
 }
 
+//function for testing cooie adding
 func (h *ApiHandler) AddCookie(ctx router.IContext) {
 	//записываем ид сессии в куки
 	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище

@@ -1,10 +1,13 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"os"
+
 	"proto-game-server/router"
 
+	"cloud.google.com/go/profiler"
 	"github.com/op/go-logging"
 )
 
@@ -20,6 +23,14 @@ func CreateLogger() router.ILogger {
 }
 
 func main() {
+	if err := profiler.Start(profiler.Config{
+		Service:        "proto-game-server",
+		ServiceVersion: "1.0.0",
+		ProjectID:      "proto-game-server",
+	}); err != nil {
+		log.Fatalf("Cannot start the profiler: %v", err.Error())
+	}
+
 	cfg, err := LoadConfigs("./data/cfg.json")
 	if err != nil {
 		panic(err)
@@ -29,7 +40,7 @@ func main() {
 	apiRouter := router.NewRouter(logger)
 	apiHandler := NewApiHandler(cfg)
 
-	//урлы должны быть отсортированы по длине урла по убыванию потом жобавлю это программно
+	// TODO:урлы должны быть отсортированы по длине урла по убыванию потом жобавлю это программно
 	apiRouter.AddHandlerGet("/user/{slug}", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.GetUser)))
 	apiRouter.AddHandlerGet("/user", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.Profile)))
 	apiRouter.AddHandlerGet("/leaders/{offset}/{limit}", apiHandler.CorsEnableMiddleware(apiHandler.GetLeaders))
