@@ -40,7 +40,7 @@ func main() {
 	apiRouter := router.NewRouter(logger)
 	apiHandler := NewApiHandler(cfg)
 
-	// TODO:урлы должны быть отсортированы по длине урла по убыванию потом жобавлю это программно
+	// TODO: урлы должны быть отсортированы по длине урла по убыванию потом жобавлю это программно
 	apiRouter.AddHandlerGet("/user/{slug}", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.GetUser)))
 	apiRouter.AddHandlerGet("/user", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.Profile)))
 	apiRouter.AddHandlerGet("/leaders/{offset}/{limit}", apiHandler.CorsEnableMiddleware(apiHandler.GetLeaders))
