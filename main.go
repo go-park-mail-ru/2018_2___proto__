@@ -35,7 +35,6 @@ func main() {
 	apiRouter.AddHandlerGet("/leaders/{offset}/{limit}", apiHandler.CorsEnableMiddleware(apiHandler.GetLeaders))
 	apiRouter.AddHandlerGet("/session", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.GetSession)))
 	apiRouter.AddHandlerGet("/static/{file}", apiHandler.CorsEnableMiddleware(apiHandler.GetStatic))
-	apiRouter.AddHandlerGet("/test", apiHandler.Test)
 
 	apiRouter.AddHandlerPost("/signup", apiHandler.CorsEnableMiddleware(apiHandler.AddUser))
 	apiRouter.AddHandlerPost("/signin", apiHandler.CorsEnableMiddleware(apiHandler.Authorize))
@@ -44,8 +43,15 @@ func main() {
 	apiRouter.AddHandlerDelete("/user", apiHandler.CorsEnableMiddleware(apiHandler.DeleteUser))
 	apiRouter.AddHandlerOptions("/", apiHandler.CorsSetup)
 
-	// этот путь необходим для проведения нагрузочного тестирования
+	//урлы для тестирования
+	//для нагрузочного тестирования
 	apiRouter.AddHandlerGet("/loaderio-3b73ee37ac50f8785f6e274aba668913.txt", apiHandler.verifyDomain)
+	//для тестов установки куки
+	apiRouter.AddHandlerGet("/test/cookie", apiHandler.AddCookie)
+	//для тестов отлова паники
+	apiRouter.AddHandlerGet("/test/panic", apiHandler.Panic)
+	//ничего не делает
+	apiRouter.AddHandlerGet("/test", apiHandler.Test)
 
 	//запускаем сервер
 	if cfg.UseHTTPS {

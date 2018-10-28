@@ -260,6 +260,10 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 	}
 }
 
+func (h *ApiHandler) Panic(ctx router.IContext) {
+	panic("panic")
+}
+
 //function for testing cooie adding
 func (h *ApiHandler) AddCookie(ctx router.IContext) {
 	//записываем ид сессии в куки
