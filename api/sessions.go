@@ -2,12 +2,13 @@ package api
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 	"time"
-	"log"
+
+	m "proto-game-server/models"
 
 	"github.com/satori/go.uuid"
-	m "proto-game-server/models"
 )
 
 type ISessionStorage interface {
@@ -52,11 +53,12 @@ func (s *SessionStorage) Create(user *m.User) (string, bool) {
 	UUID := uuid.NewV4()
 	sessionToken := UUID.String()
 	expirationDate := time.Now().Unix() + 86400
-	
+
 	_, err = s.db.Exec("INSERT INTO user_session(token, player_id, expired_date) VALUES ($1, $2, $3);",
 		sessionToken, expectedUser.Id, expirationDate)
 	if err != nil {
 		print(err.Error())
+		print("returning previous session")
 		row = s.db.QueryRow(
 			"SELECT token FROM user_session WHERE player_id=$1",
 			expectedUser.Id)
@@ -69,8 +71,7 @@ func (s *SessionStorage) Create(user *m.User) (string, bool) {
 }
 
 func (s *SessionStorage) Remove(session *m.Session) *ApiResponse {
-	_, err := s.db.Exec(`UPDATE user_session SET ttl=$1 WHERE token=$2`,
-		time.Now().Unix(),
+	_, err := s.db.Exec(`DELETE FROM user_session WHERE token=$1`,
 		session.Token,
 	)
 
@@ -88,9 +89,12 @@ func (s *SessionStorage) Remove(session *m.Session) *ApiResponse {
 }
 
 func (s *SessionStorage) GetById(token string) (*m.Session, bool) {
-	row := s.db.QueryRow(`SELECT user_session.id, user_session.token, user_session.player_id, user_session.expired_date, player.id, player.nickname, player.password, player.fullname, player.email, player.avatar 
-	FROM user_session, player 
-	WHERE user_session.token=$1;`,
+	row := s.db.QueryRow(`SELECT s.id, s.token, s.player_id, s.expired_date, p.id,
+	p.nickname, p.password, p.fullname, p.email, p.avatar
+		FROM user_session s
+		INNER JOIN player p
+		on s.player_id = p.id
+		WHERE token=$1;`,
 		token,
 	)
 

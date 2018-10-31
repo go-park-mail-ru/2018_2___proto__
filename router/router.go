@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -75,9 +76,10 @@ func (r *Router) AddHandlerOptions(urlPattern string, h HandlerFunc) {
 
 func (r *Router) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 	r.logger.Debugf("%v: %v", req.Method, req.RequestURI)
-	defer r.LogPanic()
-
 	ctx := NewContext(writer, req, r.logger)
+
+	defer r.LogPanic(ctx)
+
 	routes, ok := r.routes[req.Method]
 	if ok {
 		for _, route := range routes {
@@ -93,8 +95,8 @@ func (r *Router) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 	r.logger.Debugf("%v: %v\nstatus: %v", req.Method, req.RequestURI, http.StatusNotFound)
 }
 
-func (r *Router) LogPanic() {
+func (r *Router) LogPanic(ctx IContext) {
 	if rec := recover(); rec != nil {
-		r.logger.Critical("PANIC!")
+		r.logger.Critical(fmt.Sprintf("PANIC! %v", ctx.Request()))
 	}
 }
