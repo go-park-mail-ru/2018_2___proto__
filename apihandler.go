@@ -113,8 +113,6 @@ func (h *ApiHandler) Profile(ctx router.IContext) {
 	}
 
 	session := data.(*m.Session)
-	println(session.Token)
-	println(session.User.Nickname)
 	WriteResponse(&api.ApiResponse{Code: http.StatusOK, Response: session.User}, ctx)
 }
 
@@ -218,7 +216,6 @@ func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc 
 				ctx)
 			return
 		}
-		println(sessionCookie.Value)
 
 		//поиск сессии по ИД в хранилище
 		session, sessionExists := h.apiService.Sessions.GetById(sessionCookie.Value)
