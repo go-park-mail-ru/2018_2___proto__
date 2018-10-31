@@ -79,7 +79,7 @@ func (h *ApiHandler) DeleteUser(ctx router.IContext) {
 }
 
 func (h *ApiHandler) UpdateUser(ctx router.IContext) {
-	session, ok := ctx.CtxParam(sessionCtxParamName)
+	_, ok := ctx.CtxParam(sessionCtxParamName)
 	if !ok {
 		WriteResponse(&api.ApiResponse{
 			Code:     http.StatusNotFound,
@@ -87,7 +87,6 @@ func (h *ApiHandler) UpdateUser(ctx router.IContext) {
 			ctx)
 		return
 	}
-	session = session
 
 	user := new(m.User)
 	ctx.ReadJSON(user)
@@ -114,6 +113,8 @@ func (h *ApiHandler) Profile(ctx router.IContext) {
 	}
 
 	session := data.(*m.Session)
+	println(session.Token)
+	println(session.User.Nickname)
 	WriteResponse(&api.ApiResponse{Code: http.StatusOK, Response: session.User}, ctx)
 }
 
@@ -138,6 +139,22 @@ func (h *ApiHandler) GetSession(ctx router.IContext) {
 
 func (h *ApiHandler) Test(ctx router.IContext) {
 	ctx.StatusCode(http.StatusOK)
+}
+
+func (h *ApiHandler) Logout(ctx router.IContext) {
+	sessionid, ok := ctx.CtxParam(sessionCtxParamName)
+	if !ok {
+		WriteResponse(&api.ApiResponse{
+			Code:     http.StatusNotFound,
+			Response: "Session not found"},
+			ctx)
+		return
+	}
+
+	session := new(m.Session)
+	session.Token = sessionid.(string)
+
+	WriteResponse(h.apiService.Sessions.Remove(session), ctx)
 }
 
 func (h *ApiHandler) GetStatic(ctx router.IContext) {
@@ -201,11 +218,11 @@ func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc 
 				ctx)
 			return
 		}
+		println(sessionCookie.Value)
 
 		//поиск сессии по ИД в хранилище
 		session, sessionExists := h.apiService.Sessions.GetById(sessionCookie.Value)
-
-		if !sessionExists || session.TTL <= time.Now().Unix() {
+		if !sessionExists {
 			WriteResponse(&api.ApiResponse{
 				Code:     http.StatusUnauthorized,
 				Response: "You are not authorized"},
@@ -213,6 +230,14 @@ func (h *ApiHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerFunc 
 			return
 		}
 
+		if session.TTL <= time.Now().Unix() {
+			WriteResponse(&api.ApiResponse{
+				Code:     http.StatusUnauthorized,
+				Response: "Session timeout"},
+				ctx)
+			return
+		}
+		println(session.Token)
 		ctx.AddCtxParam(sessionCtxParamName, session)
 		next(ctx)
 	}
@@ -223,6 +248,7 @@ func (h *ApiHandler) CorsSetup(ctx router.IContext) {
 	ctx.Header("Access-Control-Allow-Origin", h.corsAllowedHost)
 	ctx.Header("Access-Control-Allow-Credentials", "true")
 	ctx.Header("Access-Control-Allow-Headers", "Content-Type")
+	ctx.Header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS, PATCH")
 	ctx.Header("Access-Control-Request-Methods", "GET, PUT, POST, DELETE, OPTIONS, PATCH")
 
 }
@@ -251,7 +277,7 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 	}
 
 	//записываем ид сессии в куки
-	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище
+	//при каждом запросе, требующем аутнетификацию, будет браться данная кука и искаться в хранилище
 	err := ctx.SetCookie(&http.Cookie{Name: cookieSessionIdName, Value: sessionId})
 	if err != nil {
 		ctx.Logger().Error(fmt.Sprintf("FAILED TO WRITE SESSION TO COOKIE %v", sessionId))
@@ -262,10 +288,10 @@ func (h *ApiHandler) Authorize(ctx router.IContext) {
 	}
 }
 
-//function for testing cooie adding
+//function for testing cookie adding
 func (h *ApiHandler) AddCookie(ctx router.IContext) {
 	//записываем ид сессии в куки
-	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище
+	//при каждом запросе, требующем аутнетификацию, будет браться данная кука и искаться в хранилище
 	expiration := time.Now().Add(365 * 24 * time.Hour)
 	cookie := &http.Cookie{
 		Name:    "csrftoken",

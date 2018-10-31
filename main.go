@@ -53,6 +53,7 @@ func main() {
 
 	apiRouter.AddHandlerPut("/user", apiHandler.CorsEnableMiddleware(apiHandler.AuthMiddleware(apiHandler.UpdateUser)))
 	apiRouter.AddHandlerDelete("/user", apiHandler.CorsEnableMiddleware(apiHandler.DeleteUser))
+	apiRouter.AddHandlerDelete("/logout", apiHandler.CorsEnableMiddleware(apiHandler.Logout))
 	apiRouter.AddHandlerOptions("/", apiHandler.CorsSetup)
 
 	// этот путь необходим для проведения нагрузочного тестирования
