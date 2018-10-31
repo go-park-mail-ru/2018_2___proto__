@@ -29,12 +29,11 @@ type SessionStorage struct {
 	db *sql.DB
 }
 
-//нужно реализовать
 func NewSessionStorage(db *sql.DB) *SessionStorage {
 	return &SessionStorage{db: db}
 }
 
-//выдача куки при авторизации
+// выдача куки при авторизации
 func (s *SessionStorage) Create(user *m.User) (string, bool) {
 	row := s.db.QueryRow(
 		"SELECT id, nickname, password, fullname, email, avatar FROM player WHERE nickname=$1",

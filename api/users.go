@@ -85,7 +85,7 @@ func (u *UserStorage) Add(user *m.User) *ApiResponse {
 	return &ApiResponse{Code: http.StatusCreated, Response: user}
 }
 
-// TODO: remove user's session
+// FIXME: remove user's session
 func (u *UserStorage) Remove(user *m.User) *ApiResponse {
 
 	// это работает в консоли pgsql, но не работает тут ¯\_(ツ)_/¯
@@ -101,7 +101,7 @@ func (u *UserStorage) Remove(user *m.User) *ApiResponse {
 		Response: "User removed."}
 }
 
-// untested
+// TODO: this funs is untested
 func (u *UserStorage) Update(user *m.User) *ApiResponse {
 	if _, err := validate.ValidateStruct(user); err != nil {
 		return ThrowAPIError(http.StatusBadRequest, err.Error())
