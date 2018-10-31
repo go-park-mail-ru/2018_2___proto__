@@ -39,7 +39,7 @@ func main() {
 	apiRouter := router.NewRouter(logger)
 	nh := NewNetworkHandler(cfg, logger)
 
-	//урлы должны быть отсортированы по длине урла по убыванию потом жобавлю это программно
+	// TO DO: урлы должны быть отсортированы по длине урла по убыванию потом жобавлю это программно
 	apiRouter.AddHandlerGet("/user/{slug}", nh.CorsEnableMiddleware(nh.AuthMiddleware(nh.GetUser)))
 	apiRouter.AddHandlerGet("/user", nh.CorsEnableMiddleware(nh.AuthMiddleware(nh.Profile)))
 	apiRouter.AddHandlerGet("/leaders/{offset}/{limit}", nh.CorsEnableMiddleware(nh.GetLeaders))
@@ -52,6 +52,7 @@ func main() {
 
 	apiRouter.AddHandlerPut("/user", nh.CorsEnableMiddleware(nh.AuthMiddleware(nh.UpdateUser)))
 	apiRouter.AddHandlerDelete("/user", nh.CorsEnableMiddleware(nh.DeleteUser))
+	apiRouter.AddHandlerDelete("/logout", nh.CorsEnableMiddleware(nh.AuthMiddleware(nh.Logout)))
 	apiRouter.AddHandlerOptions("/", nh.CorsSetup)
 
 	//урлы для тестирования

@@ -106,6 +106,9 @@ func (h *NetworkHandler) CorsSetup(ctx router.IContext) {
 	ctx.Header("Access-Control-Allow-Origin", h.corsAllowedHost)
 	ctx.Header("Access-Control-Allow-Credentials", "true")
 	ctx.Header("Access-Control-Allow-Headers", "Content-Type")
+	ctx.Header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS, PATCH")
+	ctx.Header("Access-Control-Request-Methods", "GET, PUT, POST, DELETE, OPTIONS, PATCH")
+
 }
 
 func (h *NetworkHandler) CorsEnableMiddleware(next router.HandlerFunc) router.HandlerFunc {
@@ -114,6 +117,7 @@ func (h *NetworkHandler) CorsEnableMiddleware(next router.HandlerFunc) router.Ha
 		next(ctx)
 	}
 }
+
 
 func (h *NetworkHandler) verifyDomain(ctx router.IContext) {
 	message := "loaderio-3b73ee37ac50f8785f6e274aba668913"
@@ -138,7 +142,7 @@ func (h *NetworkHandler) DeleteUser(ctx router.IContext) {
 }
 
 func (h *NetworkHandler) UpdateUser(ctx router.IContext) {
-	session, ok := ctx.CtxParam(sessionCtxParamName)
+	_, ok := ctx.CtxParam(sessionCtxParamName)
 	if !ok {
 		WriteResponse(&api.ApiResponse{
 			Code:     http.StatusNotFound,
@@ -146,7 +150,6 @@ func (h *NetworkHandler) UpdateUser(ctx router.IContext) {
 			ctx)
 		return
 	}
-	session = session
 
 	user := new(m.User)
 	ctx.ReadJSON(user)
@@ -173,6 +176,8 @@ func (h *NetworkHandler) Profile(ctx router.IContext) {
 	}
 
 	session := data.(*m.Session)
+	println(session.Token)
+	println(session.User.Nickname)
 	WriteResponse(&api.ApiResponse{Code: http.StatusOK, Response: session.User}, ctx)
 }
 
@@ -197,6 +202,22 @@ func (h *NetworkHandler) GetSession(ctx router.IContext) {
 
 func (h *NetworkHandler) Test(ctx router.IContext) {
 	ctx.StatusCode(http.StatusOK)
+}
+
+func (h *NetworkHandler) Logout(ctx router.IContext) {
+	sessionid, ok := ctx.CtxParam(sessionCtxParamName)
+	if !ok {
+		WriteResponse(&api.ApiResponse{
+			Code:     http.StatusNotFound,
+			Response: "Session not found"},
+			ctx)
+		return
+	}
+
+	session := new(m.Session)
+	session.Token = sessionid.(string)
+
+	WriteResponse(h.apiService.Sessions.Remove(session), ctx)
 }
 
 func (h *NetworkHandler) GetStatic(ctx router.IContext) {
@@ -264,7 +285,7 @@ func (h *NetworkHandler) Authorize(ctx router.IContext) {
 	}
 
 	//записываем ид сессии в куки
-	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище
+	//при каждом запросе, требующем аутнетификацию, будет браться данная кука и искаться в хранилище
 	err := ctx.SetCookie(&http.Cookie{Name: cookieSessionIdName, Value: sessionId})
 	if err != nil {
 		ctx.Logger().Error(fmt.Sprintf("FAILED TO WRITE SESSION TO COOKIE %v", sessionId))
@@ -282,7 +303,7 @@ func (h *NetworkHandler) Panic(ctx router.IContext) {
 //function for testing cooie adding
 func (h *NetworkHandler) AddCookie(ctx router.IContext) {
 	//записываем ид сессии в куки
-	//при каждом запросе, требующем аутнетификацию, будет брвться данная кука и искаться в хранилище
+	//при каждом запросе, требующем аутнетификацию, будет браться данная кука и искаться в хранилище
 	expiration := time.Now().Add(365 * 24 * time.Hour)
 	cookie := &http.Cookie{
 		Name:    "csrftoken",
