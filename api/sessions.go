@@ -89,9 +89,12 @@ func (s *SessionStorage) Remove(session *m.Session) *ApiResponse {
 }
 
 func (s *SessionStorage) GetById(token string) (*m.Session, bool) {
-	row := s.db.QueryRow(`SELECT user_session.id, user_session.token, user_session.player_id, user_session.expired_date, player.id, player.nickname, player.password, player.fullname, player.email, player.avatar
-	FROM user_session, player
-	WHERE user_session.token=$1;`,
+	row := s.db.QueryRow(`SELECT s.id, s.token, s.player_id, s.expired_date, p.id,
+	p.nickname, p.password, p.fullname, p.email, p.avatar
+		FROM user_session s
+		INNER JOIN player p
+		on s.player_id = p.id
+		WHERE token=$1;`,
 		token,
 	)
 
