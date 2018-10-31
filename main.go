@@ -51,7 +51,7 @@ func main() {
 	apiRouter.AddHandlerPost("/signin", nh.CorsEnableMiddleware(nh.Authorize))
 
 	apiRouter.AddHandlerPut("/user", nh.CorsEnableMiddleware(nh.AuthMiddleware(nh.UpdateUser)))
-	apiRouter.AddHandlerDelete("/user", nh.CorsEnableMiddleware(nh.DeleteUser))
+	apiRouter.AddHandlerDelete("/user", nh.CorsEnableMiddleware(nh.AuthMiddleware(nh.DeleteUser)))
 	apiRouter.AddHandlerDelete("/logout", nh.CorsEnableMiddleware(nh.AuthMiddleware(nh.Logout)))
 	apiRouter.AddHandlerOptions("/", nh.CorsSetup)
 
