@@ -148,7 +148,7 @@ func (u *UserStorage) Update(user *m.User) *ApiResponse {
 
 // TODO: method for recieving user's info
 func (u *UserStorage) Get(slug string) *ApiResponse {
-	// TODO: add check for "id" substring in order to serch for id
+	// TODO: add check for "id" substring in order to search for id
 
 	row := u.db.QueryRow("SELECT id, nickname, email, fullname, avatar FROM player WHERE nickname=$1", slug)
 	user := new(m.User)

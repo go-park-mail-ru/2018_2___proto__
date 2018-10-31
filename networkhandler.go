@@ -298,7 +298,7 @@ func (h *NetworkHandler) Panic(ctx router.IContext) {
 	panic("panic")
 }
 
-//function for testing cooie adding
+//function for testing cookie adding
 func (h *NetworkHandler) AddCookie(ctx router.IContext) {
 	//записываем ид сессии в куки
 	//при каждом запросе, требующем аутнетификацию, будет браться данная кука и искаться в хранилище
@@ -318,7 +318,6 @@ func (h *NetworkHandler) AddCookie(ctx router.IContext) {
 	ctx.Write([]byte("COOKIE"))
 }
 
-//curl -s -i -N --cookie "sessionId=f00ecc53-c4d6-4ba5-847e-e64675af6fda" -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Sec-WebSocket-Version: 13" -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" http://localhost:8443/game
 func (h *NetworkHandler) ConnectPlayer(ctx router.IContext) {
 	w := ctx.Writer()
 	r := ctx.Request()
