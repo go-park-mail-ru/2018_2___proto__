@@ -97,6 +97,6 @@ func (r *Router) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 
 func (r *Router) LogPanic(ctx IContext) {
 	if rec := recover(); rec != nil {
-		r.logger.Critical(fmt.Sprintf("PANIC! %s", ctx.Request()))
+		r.logger.Critical(fmt.Sprintf("PANIC! %v", ctx.Request()))
 	}
 }

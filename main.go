@@ -6,6 +6,8 @@ import (
 
 	"github.com/op/go-logging"
 	"proto-game-server/router"
+
+	_ "net/http/pprof"
 )
 
 func CreateLogger() router.ILogger {
@@ -19,7 +21,15 @@ func CreateLogger() router.ILogger {
 	return log
 }
 
+func Pprof() {
+	go func() {
+		http.ListenAndServe("localhost:6060", nil)
+	}()
+}
+
 func main() {
+	Pprof()
+
 	cfg, err := LoadConfigs("./data/cfg.json")
 	if err != nil {
 		panic(err)
