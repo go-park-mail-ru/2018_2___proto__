@@ -23,7 +23,7 @@ const (
 	cookieSessionIdName    = "sessionId"
 	sessionCtxParamName    = "session"
 	leadersOffsetParamName = "offset"
-	leadersCountParamName  = "count"
+	leadersCountParamName  = "limit"
 )
 
 var upgrader = ws.Upgrader{
@@ -188,6 +188,14 @@ func (h *NetworkHandler) GetLeaders(ctx router.IContext) {
 	if offsetErr != nil || limitErr != nil {
 		WriteResponse(&api.ApiResponse{
 			http.StatusBadRequest, ""}, ctx)
+	}
+
+	if offset < 0 {
+		offset = 0
+	}
+
+	if limit < 1 {
+		limit = 1
 	}
 
 	WriteResponse(h.apiService.Scores.Get(offset, limit), ctx)

@@ -2,37 +2,9 @@ package api
 
 import (
 	"database/sql"
+	"net/http"
 	m "proto-game-server/models"
 )
-
-// TODO: FIXME: хардкод лидеров
-var leaders = []*m.ScoreRecord{
-	&m.ScoreRecord{
-		Id:       1,
-		Score:    1000,
-		Nickname: "user1",
-	},
-	&m.ScoreRecord{
-		Id:       2,
-		Score:    5000,
-		Nickname: "user2",
-	},
-	&m.ScoreRecord{
-		Id:       5,
-		Score:    100,
-		Nickname: "user5",
-	},
-	&m.ScoreRecord{
-		Id:       3,
-		Score:    10,
-		Nickname: "user3",
-	},
-	&m.ScoreRecord{
-		Id:       4,
-		Score:    0,
-		Nickname: "user4",
-	},
-}
 
 type IScoreStorage interface {
 	Get(offset int, limit int) *ApiResponse
@@ -46,23 +18,50 @@ func NewScoreStorage(db *sql.DB) *ScoreStorage {
 	return &ScoreStorage{db}
 }
 
+func ReadScoreRecords(rows *sql.Rows, usedOffset int) (*m.ScoreRecords, error) {
+	scores := make([]*m.ScoreRecord, 0)
+
+	for rows.Next() {
+		scoreRecord, err := ScanScoreFromRow(rows)
+		if err != nil {
+			return nil, err
+		}
+
+		scores = append(scores, scoreRecord)
+	}
+
+	scoreRecords := &m.ScoreRecords{
+		Count:   len(scores),
+		Offset:  usedOffset,
+		Records: scores,
+	}
+
+	return scoreRecords, nil
+}
+
 func (s *ScoreStorage) Get(offset int, limit int) *ApiResponse {
-	l := len(leaders)
-	limit = offset + l
+	rows, err := s.db.Query(`WITH scores AS (
+		SELECT id, score, player_id 
+		FROM score
+		ORDER BY score DESC, id ASC
+		LIMIT $1 OFFSET $2
+	)
+	
+	SELECT s.id, s.score, p.nickname
+	FROM scores AS s
+	INNER JOIN player AS p ON p.id=s.player_id`,
+		limit,
+		offset,
+	)
 
-	if limit > l {
-		limit = l
+	if err != nil {
+		return &ApiResponse{Code: http.StatusInternalServerError, Response: err}
 	}
 
-	if offset < 0 || offset > l {
-		offset = 0
+	scoresRecords, err := ReadScoreRecords(rows, offset)
+	if err != nil {
+		return &ApiResponse{Code: http.StatusBadRequest, Response: err}
 	}
 
-	records := &m.ScoreRecords{
-		Count:   limit,
-		Offset:  offset,
-		Records: leaders[offset : offset+limit],
-	}
-
-	return &ApiResponse{Code: 200, Response: records}
+	return &ApiResponse{Code: http.StatusOK, Response: scoresRecords}
 }
