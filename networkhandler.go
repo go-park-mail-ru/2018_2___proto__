@@ -88,11 +88,20 @@ func (h *NetworkHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerF
 
 		//поиск сессии по ИД в хранилище
 		session, sessionExists := h.apiService.Sessions.GetById(sessionCookie.Value)
-
-		if !sessionExists || !session.IsAlive() {
+		println(session.Token, sessionExists)
+		println(session.TTL, time.Now().Unix())
+		if !sessionExists {
 			WriteResponse(&api.ApiResponse{
 				Code:     http.StatusUnauthorized,
 				Response: "You are not authorized"},
+				ctx)
+			return
+		}
+
+		if !session.IsAlive() {
+			WriteResponse(&api.ApiResponse{
+				Code:     http.StatusUnauthorized,
+				Response: "Session timeout"},
 				ctx)
 			return
 		}
