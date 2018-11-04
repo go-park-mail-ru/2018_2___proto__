@@ -29,12 +29,11 @@ type SessionStorage struct {
 	db *sql.DB
 }
 
-//нужно реализовать
 func NewSessionStorage(db *sql.DB) *SessionStorage {
 	return &SessionStorage{db: db}
 }
 
-//выдача куки при авторизации
+// выдача куки при авторизации
 func (s *SessionStorage) Create(user *m.User) (string, bool) {
 	row := s.db.QueryRow(
 		"SELECT id, nickname, password, fullname, email, avatar FROM player WHERE nickname=$1",
@@ -52,21 +51,30 @@ func (s *SessionStorage) Create(user *m.User) (string, bool) {
 
 	UUID := uuid.NewV4()
 	sessionToken := UUID.String()
+	var oldToken string
+	var ttl int64
 	expirationDate := time.Now().Unix() + 86400
 
 	_, err = s.db.Exec("INSERT INTO user_session(token, player_id, expired_date) VALUES ($1, $2, $3);",
 		sessionToken, expectedUser.Id, expirationDate)
 	if err != nil {
 		print(err.Error())
-		print("returning previous session")
 		row = s.db.QueryRow(
-			"SELECT token FROM user_session WHERE player_id=$1",
+			"SELECT token, expired_date FROM user_session WHERE player_id=$1",
 			expectedUser.Id)
-		err = row.Scan(&sessionToken)
+		err = row.Scan(&oldToken, &ttl)
 		if err != nil {
 			return "", false
 		}
+		if ttl < time.Now().Unix() {
+			_, err = s.db.Exec("DELETE FROM user_session WHERE token=$1;", oldToken)
+			_, err = s.db.Exec("INSERT INTO user_session(token, player_id, expired_date) VALUES ($1, $2, $3);", sessionToken, expectedUser.Id, expirationDate)
+			if err != nil {
+				return "", false
+			}
+		}
 	}
+	println("\nreturned sessionID ", sessionToken)
 	return sessionToken, true
 }
 

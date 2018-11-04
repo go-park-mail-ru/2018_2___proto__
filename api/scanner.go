@@ -24,3 +24,9 @@ func ScanSessionFromRow(row IRow) (*m.Session, error) {
 		&session.User.Fullname, &session.User.Email, &session.User.Avatar)
 	return session, err
 }
+
+func ScanScoreFromRow(row IRow) (*m.ScoreRecord, error) {
+	scoreRecord := new(m.ScoreRecord)
+	err := row.Scan(&scoreRecord.Id, &scoreRecord.Score, &scoreRecord.Nickname)
+	return scoreRecord, err
+}

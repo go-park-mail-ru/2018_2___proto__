@@ -23,7 +23,7 @@ const (
 	cookieSessionIdName    = "sessionId"
 	sessionCtxParamName    = "session"
 	leadersOffsetParamName = "offset"
-	leadersCountParamName  = "count"
+	leadersCountParamName  = "limit"
 )
 
 var upgrader = ws.Upgrader{
@@ -88,11 +88,20 @@ func (h *NetworkHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerF
 
 		//поиск сессии по ИД в хранилище
 		session, sessionExists := h.apiService.Sessions.GetById(sessionCookie.Value)
-
-		if !sessionExists || !session.IsAlive() {
+		println(session.Token, sessionExists)
+		println(session.TTL, time.Now().Unix())
+		if !sessionExists {
 			WriteResponse(&api.ApiResponse{
 				Code:     http.StatusUnauthorized,
 				Response: "You are not authorized"},
+				ctx)
+			return
+		}
+
+		if !session.IsAlive() {
+			WriteResponse(&api.ApiResponse{
+				Code:     http.StatusUnauthorized,
+				Response: "Session timeout"},
 				ctx)
 			return
 		}
@@ -188,6 +197,14 @@ func (h *NetworkHandler) GetLeaders(ctx router.IContext) {
 	if offsetErr != nil || limitErr != nil {
 		WriteResponse(&api.ApiResponse{
 			http.StatusBadRequest, ""}, ctx)
+	}
+
+	if offset < 0 {
+		offset = 0
+	}
+
+	if limit < 1 {
+		limit = 1
 	}
 
 	WriteResponse(h.apiService.Scores.Get(offset, limit), ctx)
@@ -298,7 +315,7 @@ func (h *NetworkHandler) Panic(ctx router.IContext) {
 	panic("panic")
 }
 
-//function for testing cooie adding
+//function for testing cookie adding
 func (h *NetworkHandler) AddCookie(ctx router.IContext) {
 	//записываем ид сессии в куки
 	//при каждом запросе, требующем аутнетификацию, будет браться данная кука и искаться в хранилище
@@ -318,7 +335,6 @@ func (h *NetworkHandler) AddCookie(ctx router.IContext) {
 	ctx.Write([]byte("COOKIE"))
 }
 
-//curl -s -i -N --cookie "sessionId=f00ecc53-c4d6-4ba5-847e-e64675af6fda" -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Sec-WebSocket-Version: 13" -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" http://localhost:8443/game
 func (h *NetworkHandler) ConnectPlayer(ctx router.IContext) {
 	w := ctx.Writer()
 	r := ctx.Request()

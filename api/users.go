@@ -85,7 +85,7 @@ func (u *UserStorage) Add(user *m.User) *ApiResponse {
 	return &ApiResponse{Code: http.StatusCreated, Response: user}
 }
 
-// TODO: remove user's session
+// FIXME: remove user's session
 func (u *UserStorage) Remove(user *m.User) *ApiResponse {
 
 	// это работает в консоли pgsql, но не работает тут ¯\_(ツ)_/¯
@@ -101,13 +101,13 @@ func (u *UserStorage) Remove(user *m.User) *ApiResponse {
 		Response: "User removed."}
 }
 
-// untested
+// TODO: this funs is untested
 func (u *UserStorage) Update(user *m.User) *ApiResponse {
 	if _, err := validate.ValidateStruct(user); err != nil {
 		return ThrowAPIError(http.StatusBadRequest, err.Error())
 	}
 
-	row := u.db.QueryRow("SELECT id, nickname, password, fullname, email, avatar FROM user WHERE id=$1", user.Id)
+	row := u.db.QueryRow("SELECT id, nickname, password, fullname, email, avatar FROM player WHERE id=$1", user.Id)
 	oldUser, err := ScanUserFromRow(row)
 
 	if err != nil {
@@ -134,7 +134,7 @@ func (u *UserStorage) Update(user *m.User) *ApiResponse {
 		user.Avatar = oldUser.Avatar
 	}
 
-	_, err = u.db.Exec("UPDATE user SET nickname=$1, fullname=$2, password=$3, email=$4, avatar=$5 WHERE id=$5",
+	_, err = u.db.Exec("UPDATE player SET nickname=$1, fullname=$2, password=$3, email=$4, avatar=$5 WHERE id=$5",
 		user.Nickname, user.Fullname, user.Password, user.Email, user.Id, user.Avatar)
 	if err != nil {
 		return ThrowAPIError(http.StatusConflict, err.Error())
@@ -148,7 +148,7 @@ func (u *UserStorage) Update(user *m.User) *ApiResponse {
 
 // TODO: method for recieving user's info
 func (u *UserStorage) Get(slug string) *ApiResponse {
-	// TODO: add check for "id" substring in order to serch for id
+	// TODO: add check for "id" substring in order to search for id
 
 	row := u.db.QueryRow("SELECT id, nickname, email, fullname, avatar FROM player WHERE nickname=$1", slug)
 	user := new(m.User)
