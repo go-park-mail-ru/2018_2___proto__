@@ -27,25 +27,25 @@ func NewDefaultLogger() *DafaultLogger {
 }
 
 func (l *DafaultLogger) Debugf(msg string, v ...interface{}) {
-	log.Printf(msg, v)
+	log.Printf(msg, v...)
 }
 
 func (l *DafaultLogger) Info(v ...interface{}) {
-	log.Println(v)
+	log.Println(v...)
 }
 
 func (l *DafaultLogger) Notice(v ...interface{}) {
-	log.Println(v)
+	log.Println(v...)
 }
 
 func (l *DafaultLogger) Warning(v ...interface{}) {
-	log.Println(v)
+	log.Println(v...)
 }
 
 func (l *DafaultLogger) Error(v ...interface{}) {
-	log.Println(v)
+	log.Println(v...)
 }
 
 func (l *DafaultLogger) Critical(v ...interface{}) {
-	log.Printf("CRITICAL %v", v)
+	log.Printf("CRITICAL %v", v...)
 }

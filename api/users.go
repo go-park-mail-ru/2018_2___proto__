@@ -3,8 +3,8 @@ package api
 import (
 	"database/sql"
 	"errors"
-	"log"
 	"net/http"
+
 	m "proto-game-server/models"
 
 	validate "github.com/asaskevich/govalidator"
@@ -28,18 +28,10 @@ func NewUserStorage(db *sql.DB) *UserStorage {
 	return &UserStorage{db}
 }
 
-func ScanUserFromRow(row *sql.Row) (*m.User, error) {
-	user := new(m.User)
-	err := row.Scan(&user.Id, &user.Nickname, &user.Password, &user.Fullname, &user.Email)
-
-	return user, err
-}
-
 // nice func to remove repeating code
 func ThrowAPIError(code int16, message string) *ApiResponse {
-	log.Println(message)
 	return &ApiResponse{
-		Code: http.StatusBadRequest,
+		Code: int(code),
 		Response: &m.Error{
 			Code:    code,
 			Message: message}}
@@ -90,22 +82,32 @@ func (u *UserStorage) Add(user *m.User) *ApiResponse {
 	}
 
 	user.Id, _ = result.LastInsertId()
-	return &ApiResponse{Code: 201, Response: user}
+	return &ApiResponse{Code: http.StatusCreated, Response: user}
 }
 
-// TODO: user remove
+// FIXME: remove user's session
 func (u *UserStorage) Remove(user *m.User) *ApiResponse {
-	return &ApiResponse{Code: 400, Response: &m.Error{1, "unimplemented api"}}
+
+	// это работает в консоли pgsql, но не работает тут ¯\_(ツ)_/¯
+	_, err := u.db.Exec(
+		"DELETE FROM player WHERE id=$1;", user.Id)
+	print(err.Error())
+	if err != nil {
+		return ThrowAPIError(http.StatusNotFound, err.Error())
+	}
+
+	return &ApiResponse{
+		Code:     http.StatusGone,
+		Response: "User removed."}
 }
 
-//untested. Скорее всего не работает
-// TODO: user update() validation
+// TODO: this funs is untested
 func (u *UserStorage) Update(user *m.User) *ApiResponse {
 	if _, err := validate.ValidateStruct(user); err != nil {
 		return ThrowAPIError(http.StatusBadRequest, err.Error())
 	}
 
-	row := u.db.QueryRow("SELECT id, nickname, password, fullname, email FROM user WHERE id=$1", user.Id)
+	row := u.db.QueryRow("SELECT id, nickname, password, fullname, email, avatar FROM player WHERE id=$1", user.Id)
 	oldUser, err := ScanUserFromRow(row)
 
 	if err != nil {
@@ -128,8 +130,12 @@ func (u *UserStorage) Update(user *m.User) *ApiResponse {
 		user.Email = oldUser.Email
 	}
 
-	_, err = u.db.Exec("UPDATE user SET nickname=$1, fullname=$2, password=$3, email=$4 WHERE id=$5",
-		user.Nickname, user.Fullname, user.Password, user.Email, user.Id)
+	if user.Avatar == "" {
+		user.Avatar = oldUser.Avatar
+	}
+
+	_, err = u.db.Exec("UPDATE player SET nickname=$1, fullname=$2, password=$3, email=$4, avatar=$5 WHERE id=$5",
+		user.Nickname, user.Fullname, user.Password, user.Email, user.Id, user.Avatar)
 	if err != nil {
 		return ThrowAPIError(http.StatusConflict, err.Error())
 	}
@@ -142,12 +148,11 @@ func (u *UserStorage) Update(user *m.User) *ApiResponse {
 
 // TODO: method for recieving user's info
 func (u *UserStorage) Get(slug string) *ApiResponse {
-	// return &ApiResponse{Code: 400, Response: &m.Error{1, "unimplemented api"}}
-	// TODO: add check for "id" substring in order to serch for id
+	// TODO: add check for "id" substring in order to search for id
 
-	row := u.db.QueryRow("SELECT id, nickname, email, fullname FROM player WHERE nickname=$1", slug)
+	row := u.db.QueryRow("SELECT id, nickname, email, fullname, avatar FROM player WHERE nickname=$1", slug)
 	user := new(m.User)
-	err := row.Scan(&user.Id, &user.Nickname, &user.Email, &user.Fullname)
+	err := row.Scan(&user.Id, &user.Nickname, &user.Email, &user.Fullname, &user.Avatar)
 	if err != nil {
 		return ThrowAPIError(http.StatusNotFound, err.Error())
 	}
@@ -155,5 +160,4 @@ func (u *UserStorage) Get(slug string) *ApiResponse {
 		Code:     http.StatusOK,
 		Response: user,
 	}
-
 }
