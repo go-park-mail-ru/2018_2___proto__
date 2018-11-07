@@ -88,8 +88,6 @@ func (h *NetworkHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerF
 
 		//поиск сессии по ИД в хранилище
 		session, sessionExists := h.apiService.Sessions.GetById(sessionCookie.Value)
-		println(session.Token, sessionExists)
-		println(session.TTL, time.Now().Unix())
 		if !sessionExists {
 			WriteResponse(&api.ApiResponse{
 				Code:     http.StatusUnauthorized,
@@ -229,8 +227,7 @@ func (h *NetworkHandler) Logout(ctx router.IContext) {
 		return
 	}
 
-	session := new(m.Session)
-	session.Token = sessionid.(string)
+	session := sessionid.(*m.Session)
 
 	WriteResponse(h.apiService.Sessions.Remove(session), ctx)
 }

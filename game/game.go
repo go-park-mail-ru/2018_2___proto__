@@ -5,9 +5,9 @@ import (
 )
 
 type Game struct {
-	palyersChannel chan *Player
-	roomManager    *RoomManager
-	logger         router.ILogger
+	playerChannel chan *Player
+	roomManager   *RoomManager
+	logger        router.ILogger
 }
 
 func NewGame(logger router.ILogger) *Game {
@@ -21,11 +21,11 @@ func NewGame(logger router.ILogger) *Game {
 }
 
 func (g *Game) Start() {
-	for player := range g.palyersChannel {
+	for player := range g.playerChannel {
 		g.roomManager.Queue(player)
 	}
 }
 
 func (g *Game) AddPlayer(player *Player) {
-	g.palyersChannel <- player
+	g.playerChannel <- player
 }

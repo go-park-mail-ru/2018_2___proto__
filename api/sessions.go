@@ -58,7 +58,7 @@ func (s *SessionStorage) Create(user *m.User) (string, bool) {
 	_, err = s.db.Exec("INSERT INTO user_session(token, player_id, expired_date) VALUES ($1, $2, $3);",
 		sessionToken, expectedUser.Id, expirationDate)
 	if err != nil {
-		print(err.Error())
+		log.Print(err.Error())
 		row = s.db.QueryRow(
 			"SELECT token, expired_date FROM user_session WHERE player_id=$1",
 			expectedUser.Id)
@@ -72,9 +72,11 @@ func (s *SessionStorage) Create(user *m.User) (string, bool) {
 			if err != nil {
 				return "", false
 			}
+		} else {
+			sessionToken = oldToken
 		}
 	}
-	println("\nreturned sessionID ", sessionToken)
+	log.Println("\nreturned sessionID ", sessionToken)
 	return sessionToken, true
 }
 
@@ -105,9 +107,9 @@ func (s *SessionStorage) GetById(token string) (*m.Session, bool) {
 		WHERE token=$1;`,
 		token,
 	)
-
+	// TODO: remove legacy code
 	session, err := ScanSessionFromRow(row)
-	ok := true
+	ok := true // no need
 	if err != nil {
 		print(err.Error())
 		ok = false
