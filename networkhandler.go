@@ -227,8 +227,7 @@ func (h *NetworkHandler) Logout(ctx router.IContext) {
 		return
 	}
 
-	session := new(m.Session)
-	session.Token = sessionid.(string)
+	session := sessionid.(*m.Session)
 
 	WriteResponse(h.apiService.Sessions.Remove(session), ctx)
 }

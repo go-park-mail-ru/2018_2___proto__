@@ -107,9 +107,9 @@ func (s *SessionStorage) GetById(token string) (*m.Session, bool) {
 		WHERE token=$1;`,
 		token,
 	)
-
+	// TODO: remove legacy code
 	session, err := ScanSessionFromRow(row)
-	ok := true
+	ok := true // no need
 	if err != nil {
 		print(err.Error())
 		ok = false
