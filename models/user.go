@@ -26,7 +26,7 @@ func init() {
 		// very strong password check
 		// at least 1 uppercase letter, 1 lowercase, 1 numerical and 1 special
 		regexp := regexp.MustCompile(
-			"^[[[:alnum:]][[:graph:]]]*.{8,20}$")
+			"^[[[:alnum:]]*[[:graph:]]]*.{8,20}$")
 		correct := regexp.MatchString(password)
 		if !correct {
 			return false
