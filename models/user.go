@@ -44,7 +44,7 @@ func init() {
 
 		// only latin letters are allowed
 		regexp := regexp.MustCompile(
-			"^[a-zA-Z]+$")
+			"^[a-zA-Z0-9_.]*.{3,20}$")
 		correct := regexp.MatchString(nickname)
 		if !correct {
 			return false
