@@ -78,7 +78,7 @@ func (u *UserStorage) Add(user *m.User) *ApiResponse {
 		user.Nickname, user.Password, user.Email, user.Fullname)
 
 	if err != nil {
-		return ThrowAPIError(http.StatusConflict, err.Error())
+		return ThrowAPIError(http.StatusConflict, "User already exists")
 	}
 
 	user.Id, _ = result.LastInsertId()
@@ -111,7 +111,7 @@ func (u *UserStorage) Update(user *m.User) *ApiResponse {
 	oldUser, err := ScanUserFromRow(row)
 
 	if err != nil {
-		ThrowAPIError(http.StatusNotFound, err.Error())
+		ThrowAPIError(http.StatusNotFound, "User not found")
 	}
 
 	if user.Nickname == "" {
