@@ -115,8 +115,6 @@ func (h *NetworkHandler) CorsSetup(ctx router.IContext) {
 	ctx.Header("Access-Control-Allow-Credentials", "true")
 	ctx.Header("Access-Control-Allow-Headers", "Content-Type")
 	ctx.Header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS, PATCH")
-	ctx.Header("Access-Control-Request-Methods", "GET, PUT, POST, DELETE, OPTIONS, PATCH")
-
 }
 
 func (h *NetworkHandler) CorsEnableMiddleware(next router.HandlerFunc) router.HandlerFunc {
@@ -254,7 +252,7 @@ func (h *NetworkHandler) Upload(ctx router.IContext) {
 	// the FormFile function takes in the POST input id file
 	file, header, err := r.FormFile("file")
 	if err != nil {
-		WriteResponse(&api.ApiResponse{Code: http.StatusBadRequest, Response: err}, ctx)
+		WriteResponse(&api.ApiResponse{Code: http.StatusBadRequest, Response: err.Error()}, ctx)
 		return
 	}
 
@@ -263,7 +261,7 @@ func (h *NetworkHandler) Upload(ctx router.IContext) {
 	fileName := fmt.Sprintf("%v-%v", time.Now(), header.Filename)
 	out, err := os.Create(fileName)
 	if err != nil {
-		WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError, Response: err}, ctx)
+		WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError, Response: err.Error()}, ctx)
 		return
 	}
 
@@ -277,7 +275,7 @@ func (h *NetworkHandler) Upload(ctx router.IContext) {
 		return
 	}
 
-	WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError, Response: err}, ctx)
+	WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError, Response: err.Error()}, ctx)
 }
 
 func (h *NetworkHandler) Authorize(ctx router.IContext) {

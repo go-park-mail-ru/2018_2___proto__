@@ -46,7 +46,7 @@ func main() {
 	apiRouter.AddHandlerGet("/leaders/{offset}/{limit}", nh.CorsEnableMiddleware(nh.GetLeaders))
 	apiRouter.AddHandlerGet("/session", nh.CorsEnableMiddleware(nh.AuthMiddleware(nh.GetSession)))
 	apiRouter.AddHandlerGet("/game", nh.CorsEnableMiddleware(nh.AuthMiddleware(nh.ConnectPlayer)))
-	apiRouter.AddHandlerGet("/static/{file}", nh.CorsEnableMiddleware(nh.GetStatic))
+	// apiRouter.AddHandlerGet("/static/{file}", nh.CorsEnableMiddleware(nh.GetStatic))
 
 	apiRouter.AddHandlerPost("/signup", nh.CorsEnableMiddleware(nh.AddUser))
 	apiRouter.AddHandlerPost("/signin", nh.CorsEnableMiddleware(nh.Authorize))
