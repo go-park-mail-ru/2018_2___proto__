@@ -1,2 +1,4 @@
 backend-proto
 make
+*.sh
+.vscode

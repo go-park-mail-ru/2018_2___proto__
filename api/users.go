@@ -74,7 +74,7 @@ func (u *UserStorage) Add(user *m.User) *ApiResponse {
 	}
 
 	result, err := u.db.Exec(
-		"INSERT INTO player(nickname, password, email, fullname) VALUES ($1,$2,$3,$4);",
+		"INSERT INTO player(nickname, password, email, fullname) VALUES (lower($1),$2,lower($3),$4);",
 		user.Nickname, user.Password, user.Email, user.Fullname)
 
 	if err != nil {
@@ -134,8 +134,8 @@ func (u *UserStorage) Update(user *m.User) *ApiResponse {
 		user.Avatar = oldUser.Avatar
 	}
 
-	_, err = u.db.Exec("UPDATE player SET nickname=$1, fullname=$2, password=$3, email=$4, avatar=$5 WHERE id=$5",
-		user.Nickname, user.Fullname, user.Password, user.Email, user.Id, user.Avatar)
+	_, err = u.db.Exec("UPDATE player SET nickname=lower($1), fullname=$2, password=$3, email=$4, avatar=$5 WHERE id=$6",
+		user.Nickname, user.Fullname, user.Password, user.Email, user.Avatar, user.Id)
 	if err != nil {
 		return ThrowAPIError(http.StatusConflict, err.Error())
 	}
@@ -150,7 +150,7 @@ func (u *UserStorage) Update(user *m.User) *ApiResponse {
 func (u *UserStorage) Get(slug string) *ApiResponse {
 	// TODO: add check for "id" substring in order to search for id
 
-	row := u.db.QueryRow("SELECT id, nickname, email, fullname, avatar FROM player WHERE nickname=$1", slug)
+	row := u.db.QueryRow("SELECT id, nickname, email, fullname, avatar FROM player WHERE nickname=lower($1)", slug)
 	user := new(m.User)
 	err := row.Scan(&user.Id, &user.Nickname, &user.Email, &user.Fullname, &user.Avatar)
 	if err != nil {
