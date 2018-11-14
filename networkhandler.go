@@ -35,7 +35,7 @@ var upgrader = ws.Upgrader{
 type NetworkHandler struct {
 	apiService      *api.ApiService
 	game            *game.Game
-	corsAllowedHost string
+	corsAllowedHost []string
 	staticRoot      string
 }
 
@@ -111,10 +111,21 @@ func (h *NetworkHandler) AuthMiddleware(next router.HandlerFunc) router.HandlerF
 
 //настройка cors'a
 func (h *NetworkHandler) CorsSetup(ctx router.IContext) {
-	ctx.Header("Access-Control-Allow-Origin", h.corsAllowedHost)
+	origin := ctx.GetHeader("Origin")
+	allowedHost := ScanSlice(h.corsAllowedHost, origin)
+	ctx.Header("Access-Control-Allow-Origin", allowedHost)
 	ctx.Header("Access-Control-Allow-Credentials", "true")
 	ctx.Header("Access-Control-Allow-Headers", "Content-Type")
 	ctx.Header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS, PATCH")
+}
+
+func ScanSlice(s []string, key string) string {
+	for _, a := range s {
+		if a == key {
+			return a
+		}
+	}
+	return ""
 }
 
 func (h *NetworkHandler) CorsEnableMiddleware(next router.HandlerFunc) router.HandlerFunc {
