@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -14,7 +15,7 @@ import (
 type ISessionStorage interface {
 	//создает сессию для пользователя
 	//использовать для авторизации
-	Create(user *m.User) (string, bool)
+	Create(user *m.User) (string, error)
 
 	//уничтожает сессиию
 	//использовать при выходе из системы
@@ -22,7 +23,7 @@ type ISessionStorage interface {
 
 	//возвращает сессию и флаг найдена она или нет
 	//нужно будет использовать эту функцию при аутентификации
-	GetById(id string) (*m.Session, bool)
+	GetById(id string) (*m.Session, error)
 }
 
 type SessionStorage struct {
@@ -34,7 +35,7 @@ func NewSessionStorage(db *sql.DB) *SessionStorage {
 }
 
 // выдача куки при авторизации
-func (s *SessionStorage) Create(user *m.User) (string, bool) {
+func (s *SessionStorage) Create(user *m.User) (string, error) {
 	row := s.db.QueryRow(
 		"SELECT id, nickname, password, fullname, email, avatar FROM player WHERE nickname=$1",
 		user.Nickname)
@@ -42,11 +43,11 @@ func (s *SessionStorage) Create(user *m.User) (string, bool) {
 
 	if err != nil {
 		log.Print(err)
-		return "", false
+		return "", err
 	}
 
 	if expectedUser.Password != user.Password {
-		return "", false
+		return "", errors.New("invalid passwred")
 	}
 
 	UUID := uuid.NewV4()
@@ -64,20 +65,21 @@ func (s *SessionStorage) Create(user *m.User) (string, bool) {
 			expectedUser.Id)
 		err = row.Scan(&oldToken, &ttl)
 		if err != nil {
-			return "", false
+			return "", err
 		}
 		if ttl < time.Now().Unix() {
 			_, err = s.db.Exec("DELETE FROM user_session WHERE token=$1;", oldToken)
 			_, err = s.db.Exec("INSERT INTO user_session(token, player_id, expired_date) VALUES ($1, $2, $3);", sessionToken, expectedUser.Id, expirationDate)
 			if err != nil {
-				return "", false
+				return "", errors.New("session is already dead")
 			}
 		} else {
 			sessionToken = oldToken
 		}
 	}
+
 	log.Println("\nreturned sessionID ", sessionToken)
-	return sessionToken, true
+	return sessionToken, nil
 }
 
 func (s *SessionStorage) Remove(session *m.Session) *ApiResponse {
@@ -98,7 +100,7 @@ func (s *SessionStorage) Remove(session *m.Session) *ApiResponse {
 		Response: "Session terminated."}
 }
 
-func (s *SessionStorage) GetById(token string) (*m.Session, bool) {
+func (s *SessionStorage) GetById(token string) (*m.Session, error) {
 	row := s.db.QueryRow(`SELECT s.id, s.token, s.player_id, s.expired_date, p.id,
 	p.nickname, p.password, p.fullname, p.email, p.avatar
 		FROM user_session s
@@ -107,13 +109,7 @@ func (s *SessionStorage) GetById(token string) (*m.Session, bool) {
 		WHERE token=$1;`,
 		token,
 	)
-	// TODO: remove legacy code
-	session, err := ScanSessionFromRow(row)
-	ok := true // no need
-	if err != nil {
-		print(err.Error())
-		ok = false
-	}
 
-	return session, ok
+	session, err := ScanSessionFromRow(row)
+	return session, err
 }

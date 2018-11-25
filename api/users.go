@@ -29,7 +29,7 @@ func NewUserStorage(db *sql.DB) *UserStorage {
 }
 
 // nice func to remove repeating code
-func ThrowAPIError(code int16, message string) *ApiResponse {
+func ThrowAPIError(code int32, message string) *ApiResponse {
 	return &ApiResponse{
 		Code: int(code),
 		Response: &m.Error{
@@ -44,8 +44,10 @@ func ValidateUser(user *m.User) (err error) {
 			switch x := rec.(type) {
 			case string:
 				err = errors.New(x)
+
 			case error:
 				err = x
+				
 			default:
 				err = errors.New("Unknown error")
 			}
