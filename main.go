@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 
+	"proto-game-server/chat"
 	"proto-game-server/router"
 
 	"github.com/op/go-logging"
@@ -46,6 +47,7 @@ func main() {
 	apiRouter.AddHandlerGet("/leaders/{offset}/{limit}", nh.CorsEnableMiddleware(nh.GetLeaders))
 	apiRouter.AddHandlerGet("/session", nh.CorsEnableMiddleware(nh.AuthMiddleware(nh.GetSession)))
 	apiRouter.AddHandlerGet("/game", nh.CorsEnableMiddleware(nh.AuthMiddleware(nh.ConnectPlayer)))
+	apiRouter.AddHandlerGet("/chat", nh.ConnectWriter)
 	// apiRouter.AddHandlerGet("/static/{file}", nh.CorsEnableMiddleware(nh.GetStatic))
 
 	apiRouter.AddHandlerPost("/signup", nh.CorsEnableMiddleware(nh.AddUser))
@@ -67,6 +69,7 @@ func main() {
 	apiRouter.AddHandlerGet("/test", nh.Test)
 
 	//запускаем сервер
+	http.HandleFunc("/chat", chat.ServeWs)
 	if cfg.UseHTTPS {
 		err = http.ListenAndServeTLS(cfg.Port, "fullchain.pem", "privkey.pem", apiRouter)
 	} else {

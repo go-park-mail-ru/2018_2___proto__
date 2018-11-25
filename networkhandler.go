@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"proto-game-server/api"
+	"proto-game-server/chat"
 	"proto-game-server/game"
 	"proto-game-server/router"
 	"strconv"
@@ -356,4 +357,22 @@ func (h *NetworkHandler) ConnectPlayer(ctx router.IContext) {
 
 	player := game.NewPlayer(session, conn)
 	h.game.AddPlayer(player)
+}
+
+func (h *NetworkHandler) ConnectWriter(ctx router.IContext) {
+	w := ctx.Writer()
+	r := ctx.Request()
+
+	// sessionData, _ := ctx.CtxParam(sessionCtxParamName)
+	// session := sessionData.(*m.Session)
+
+	// hub := chat.NewHub()
+	// go hub.Run()
+	chat.ServeWs(w, r)
+
+	// if err != nil {
+	// 	WriteResponse(&api.ApiResponse{Code: http.StatusBadRequest, Response: err}, ctx)
+	// 	return
+	// }
+
 }
