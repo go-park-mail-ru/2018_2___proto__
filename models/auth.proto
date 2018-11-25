@@ -5,6 +5,7 @@ package models;
 service Auth {
     rpc Auth (User) returns (SessionId) {}
 	rpc Check (SessionId) returns (Session) {}
+	rpc LogOut (Session) returns (Session) {}
 }
 
 message User {

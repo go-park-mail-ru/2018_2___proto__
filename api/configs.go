@@ -13,6 +13,7 @@ type ServerConfig struct {
 	UseHTTPS           bool   `json:"https"`
 	Port               string `json:"port"`
 	StaticRoot         string `json:"staticroot"`
+	AuthServiceHost    string `json:"authservicehost"`
 }
 
 func LoadConfigs(path string) (*ServerConfig, error) {

@@ -4,5 +4,6 @@
     "corsallowedhost": "http://rasseki.pro:3000",
     "https": false,
     "port": ":8443",
+    "authservicehost": "127.0.0.1:5050",
     "staticroot": "./data/static"
 }

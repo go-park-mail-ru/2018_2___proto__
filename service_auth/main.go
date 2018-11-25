@@ -17,10 +17,6 @@ type AuthServer struct {
 	Sessions *api.SessionStorage
 }
 
-const (
-	port = ":5050"
-)
-
 
 func (as *AuthServer) Auth(ctx context.Context, user *m.User) (*m.SessionId, error) {
 	sessionIdString, err := as.Sessions.Create(user)
@@ -34,13 +30,17 @@ func (as *AuthServer) Check(ctx context.Context, sessionId *m.SessionId) (*m.Ses
 	return as.Sessions.GetById(sessionId.Id)
 }
 
+func (as *AuthServer) LogOut(ctx context.Context, session *m.Session) (*m.Session, error) {
+	return as.Sessions.Remove(session)
+}
+
 func main() {
 	cfg, err := api.LoadConfigs("./data/cfg.json")
 	if err != nil {
 		panic(err)
 	}
 
-	lis, err := net.Listen("tcp", port)
+	lis, err := net.Listen("tcp", cfg.Port)
 	if err != nil {
 		log.Fatalln(err)
 	}

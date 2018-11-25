@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"log"
-	"net/http"
 	"time"
 
 	m "proto-game-server/models"
@@ -19,7 +18,7 @@ type ISessionStorage interface {
 
 	//уничтожает сессиию
 	//использовать при выходе из системы
-	Remove(session *m.Session) *ApiResponse
+	Remove(session *m.Session) (*m.Session, error)
 
 	//возвращает сессию и флаг найдена она или нет
 	//нужно будет использовать эту функцию при аутентификации
@@ -82,22 +81,12 @@ func (s *SessionStorage) Create(user *m.User) (string, error) {
 	return sessionToken, nil
 }
 
-func (s *SessionStorage) Remove(session *m.Session) *ApiResponse {
+func (s *SessionStorage) Remove(session *m.Session) (*m.Session, error) {
 	_, err := s.db.Exec(`DELETE FROM user_session WHERE token=$1`,
 		session.Token,
 	)
 
-	if err != nil {
-		return &ApiResponse{
-			Code: http.StatusNotFound,
-			Response: &m.Error{
-				Code:    http.StatusNotFound,
-				Message: err.Error()}}
-	}
-
-	return &ApiResponse{
-		Code:     http.StatusGone,
-		Response: "Session terminated."}
+	return session, err;
 }
 
 func (s *SessionStorage) GetById(token string) (*m.Session, error) {

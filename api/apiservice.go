@@ -16,10 +16,10 @@ type ApiService struct {
 	Scores   IScoreStorage
 }
 
-func NewApiService(connector string, connectionString string) (*ApiService, error) {
-	fmt.Println(connectionString)
+func NewApiService(cfg *ServerConfig) (*ApiService, error) {
+	fmt.Println(cfg.DbConnectionString)
 
-	db, err := sql.Open(connector, connectionString)
+	db, err := sql.Open(cfg.DbConnector, cfg.DbConnectionString)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func NewApiService(connector string, connectionString string) (*ApiService, erro
 
 	// TODO: fix later
 	authClientConn, err := grpc.Dial(
-		"127.0.0.1:5050",
+		cfg.AuthServiceHost,
 		grpc.WithInsecure(),
 	)
 	if err != nil {

@@ -42,7 +42,7 @@ type NetworkHandler struct {
 
 //избавиться от хардкода коннекта к бд
 func NewNetworkHandler(settings *api.ServerConfig, logger router.ILogger) *NetworkHandler {
-	service, err := api.NewApiService(settings.DbConnector, settings.DbConnectionString)
+	service, err := api.NewApiService(settings)
 
 	if err != nil {
 		panic(err)
@@ -253,13 +253,7 @@ func (h *NetworkHandler) Test(ctx router.IContext) {
 }
 
 func (h *NetworkHandler) Logout(ctx router.IContext) {
-	// TODO: fix later
-	WriteResponse(&api.ApiResponse{
-		Code:     http.StatusNotFound,
-		Response: "Session not found"},
-		ctx)
-
-	/*sessionid, ok := ctx.CtxParam(sessionCtxParamName)
+	sessionid, ok := ctx.CtxParam(sessionCtxParamName)
 	if !ok {
 		WriteResponse(&api.ApiResponse{
 			Code:     http.StatusNotFound,
@@ -269,8 +263,21 @@ func (h *NetworkHandler) Logout(ctx router.IContext) {
 	}
 
 	session := sessionid.(*m.Session)
+	serviceContext := context.Background()
+	_, err := h.apiService.Sessions.LogOut(serviceContext, session)
 
-	WriteResponse(h.apiService.Sessions.Remove(session), ctx)*/
+	if err != nil {
+		WriteResponse(&api.ApiResponse{
+			Code:     http.StatusNotFound,
+			Response: "Session not found"},
+			ctx)
+		return
+	}
+
+	WriteResponse(&api.ApiResponse{
+		Code:     http.StatusGone,
+		Response: "session terminated"},
+		ctx)
 }
 
 func (h *NetworkHandler) GetStatic(ctx router.IContext) {
