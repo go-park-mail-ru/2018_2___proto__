@@ -122,6 +122,7 @@ func (c *Client) writePump() {
 
 // serveWs handles websocket requests from the peer.
 func ServeWs(w http.ResponseWriter, r *http.Request) {
+	log.Println("opening ws conn")
 	hub := NewHub()
 	go hub.Run()
 	upgrader.CheckOrigin = func(r *http.Request) bool {
