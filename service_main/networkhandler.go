@@ -149,7 +149,6 @@ func (h *NetworkHandler) CorsSetup(ctx router.IContext) {
 	ctx.Header("Access-Control-Allow-Credentials", "true")
 	ctx.Header("Access-Control-Allow-Headers", "Content-Type")
 	ctx.Header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS, PATCH")
-	ctx.Header("Access-Control-Request-Methods", "GET, PUT, POST, DELETE, OPTIONS, PATCH")
 
 }
 
