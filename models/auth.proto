@@ -27,8 +27,3 @@ message Session {
 	int64 TTL = 3;
 	User user = 4;
 }
-
-message Error {
-    int32 Code = 1;
-    string Message = 2;
-}

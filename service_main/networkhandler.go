@@ -40,7 +40,6 @@ type NetworkHandler struct {
 	staticRoot      string
 }
 
-//избавиться от хардкода коннекта к бд
 func NewNetworkHandler(settings *api.ServerConfig, logger router.ILogger) *NetworkHandler {
 	service, err := api.NewApiService(settings)
 
@@ -75,7 +74,7 @@ func WriteResponse(response *api.ApiResponse, ctx router.IContext) {
 
 func (h *NetworkHandler) Authorize(ctx router.IContext) {
 	user := new(m.User)
-	ctx.ReadJSON(user)
+	ctx.ReadEasyJSON(user)
 
 	//хранилище создают сессию и возвращает нам ид сессии, который записывам в куки
 	serviceContext := context.Background()
@@ -168,7 +167,7 @@ func (h *NetworkHandler) verifyDomain(ctx router.IContext) {
 
 func (h *NetworkHandler) AddUser(ctx router.IContext) {
 	user := new(m.User)
-	ctx.ReadJSON(user)
+	ctx.ReadEasyJSON(user)
 
 	//можно потом добавить валидацию, но не сейчас
 
@@ -178,7 +177,7 @@ func (h *NetworkHandler) AddUser(ctx router.IContext) {
 
 func (h *NetworkHandler) DeleteUser(ctx router.IContext) {
 	user := new(m.User)
-	ctx.ReadJSON(user)
+	ctx.ReadEasyJSON(user)
 
 	WriteResponse(h.apiService.Users.Remove(user), ctx)
 }
@@ -194,14 +193,14 @@ func (h *NetworkHandler) UpdateUser(ctx router.IContext) {
 	}
 
 	user := new(m.User)
-	ctx.ReadJSON(user)
+	ctx.ReadEasyJSON(user)
 
 	WriteResponse(h.apiService.Users.Update(user), ctx)
 }
 
 func (h *NetworkHandler) GetUser(ctx router.IContext) {
 	user := new(m.User)
-	ctx.ReadJSON(user)
+	ctx.ReadEasyJSON(user)
 
 	params := ctx.UrlParams()
 

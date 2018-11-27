@@ -7,6 +7,7 @@ require (
 	github.com/golang/protobuf v1.2.0
 	github.com/gorilla/websocket v1.4.0
 	github.com/lib/pq v1.0.0
+	github.com/mailru/easyjson v0.0.0-20180823135443-60711f1a8329 // indirect
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/satori/go.uuid v1.2.0
 	golang.org/x/lint v0.0.0-20181026193005-c67002cb31c3 // indirect

@@ -6,17 +6,6 @@ import (
 	"github.com/asaskevich/govalidator"
 )
 
-/*type User struct {
-	Id                   int64    `protobuf:"varint,1,opt,name=Id,json=id,proto3" json:"id,omitempty valid:"-"`
-	Nickname             string   `protobuf:"bytes,2,opt,name=Nickname,json=nickname,proto3" json:"nickname" valid:"required,login"`
-	Password             string   `protobuf:"bytes,3,opt,name=Password,json=password,proto3" json:"password,omitempty" valid:"required,pass"`
-	Email                string   `protobuf:"bytes,4,opt,name=Email,json=email,proto3" json:"email,omitempty" valid:"required,email"`
-	Fullname             string   `protobuf:"bytes,5,opt,name=Fullname,json=fullname,proto3" json:"fullname,omitempty" valid:"name"`
-	Avatar               string   `protobuf:"bytes,6,opt,name=Avatar,json=avatar,proto3" json:"avatar,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}*/
 
 func init() {
 	// custom validator for password
