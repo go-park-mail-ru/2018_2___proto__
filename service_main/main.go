@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"os"
 
-	"proto-game-server/router"
-	"proto-game-server/api"
 	"github.com/op/go-logging"
+	"proto-game-server/api"
+	"proto-game-server/router"
 
 	_ "net/http/pprof"
 )
@@ -29,11 +29,13 @@ func Pprof() {
 }
 
 func main() {
-	Pprof()
-
 	cfg, err := api.LoadConfigs("./data/cfg.json")
 	if err != nil {
 		panic(err)
+	}
+
+	if cfg.PprofEnabled {
+		Pprof()
 	}
 
 	logger := CreateLogger()
