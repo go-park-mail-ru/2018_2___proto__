@@ -1,6 +1,6 @@
 package api
 
 type ApiResponse struct {
-	Code     int
-	Response interface{}
+	Code     int         `json:"Code"`
+	Response interface{} `json:"Response"`
 }

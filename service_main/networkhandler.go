@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -59,7 +58,7 @@ func NewNetworkHandler(settings *api.ServerConfig, logger router.ILogger) *Netwo
 }
 
 func WriteResponse(response *api.ApiResponse, ctx router.IContext) {
-	data, err := json.Marshal(response.Response)
+	data, err := response.MarshalJSON()
 	if err != nil {
 		ctx.Logger().Error(err)
 		return
