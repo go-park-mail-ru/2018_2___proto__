@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"encoding/json"
@@ -13,6 +13,8 @@ type ServerConfig struct {
 	UseHTTPS           bool   `json:"https"`
 	Port               string `json:"port"`
 	StaticRoot         string `json:"staticroot"`
+	AuthServiceHost    string `json:"authservicehost"`
+	PprofEnabled       bool   `json:"pprofenabled"`
 }
 
 func LoadConfigs(path string) (*ServerConfig, error) {

@@ -1,8 +1,5 @@
 {
     "dbconnector": "postgres",
     "connectionstring": "host=localhost port=5432 user=proto password=proto dbname=proto sslmode=disable",
-    "corsallowedhost": "http://rasseki.pro:3000",
-    "https": false,
-    "port": ":8443",
-    "staticroot": "./data/static"
+    "port": ":5050"
 }

@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package models;
+
+service Auth {
+    rpc Auth (User) returns (SessionId) {}
+	rpc Check (SessionId) returns (Session) {}
+	rpc LogOut (Session) returns (Session) {}
+}
+
+message User {
+    int64 Id = 1;       
+	string Nickname = 2; 
+	string Password = 3;
+	string Email = 4;    
+	string Fullname = 5; 
+	string Avatar = 6;   
+}
+
+message SessionId {
+	string Id = 1;
+}
+
+message Session {
+	string Id = 1;
+	string Token = 2;
+	int64 TTL = 3;
+	User user = 4;
+}

@@ -4,28 +4,41 @@ import (
 	"database/sql"
 	"fmt"
 
+	"google.golang.org/grpc"
+
+	m "proto-game-server/models"
 	_ "github.com/lib/pq"
 )
 
 type ApiService struct {
+	Sessions m.AuthClient
 	Users    IUserStorage
-	Sessions ISessionStorage
 	Scores   IScoreStorage
 }
 
-func NewApiService(connector string, connectionString string) (*ApiService, error) {
-	fmt.Println(connectionString)
+func NewApiService(cfg *ServerConfig) (*ApiService, error) {
+	fmt.Println(cfg.DbConnectionString)
 
-	db, err := sql.Open(connector, connectionString)
+	db, err := sql.Open(cfg.DbConnector, cfg.DbConnectionString)
 	if err != nil {
 		return nil, err
 	}
 
 	// defer db.Close()
 
+	// TODO: fix later
+	authClientConn, err := grpc.Dial(
+		cfg.AuthServiceHost,
+		grpc.WithInsecure(),
+	)
+	if err != nil {
+		panic(err)
+	}
+	//defer authClientConn.Close()
+
 	service := &ApiService{
 		Users:    NewUserStorage(db),
-		Sessions: NewSessionStorage(db),
+		Sessions: m.NewAuthClient(authClientConn),
 		Scores:   NewScoreStorage(db),
 	}
 

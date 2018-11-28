@@ -6,14 +6,6 @@ import (
 	"github.com/asaskevich/govalidator"
 )
 
-type User struct {
-	Id       int64  `json:"id,omitempty valid:"-"`
-	Nickname string `json:"nickname" valid:"required,login"`
-	Password string `json:"password,omitempty" valid:"required,pass"`
-	Email    string `json:"email,omitempty" valid:"required,email"`
-	Fullname string `json:"fullname,omitempty" valid:"name"`
-	Avatar   string `json:"avatar,omitempty"`
-}
 
 func init() {
 	// custom validator for password
@@ -26,7 +18,7 @@ func init() {
 		// very strong password check
 		// at least 1 uppercase letter, 1 lowercase, 1 numerical and 1 special
 		regexp := regexp.MustCompile(
-			"^[[[:alnum:]][[:graph:]]]*.{8,20}$")
+			"^[[[:alnum:]]*[[:graph:]]]*.{8,20}$")
 		correct := regexp.MatchString(password)
 		if !correct {
 			return false
@@ -44,7 +36,7 @@ func init() {
 
 		// only latin letters are allowed
 		regexp := regexp.MustCompile(
-			"^[a-zA-Z]+$")
+			"^[a-zA-Z0-9_.]*.{3,20}$")
 		correct := regexp.MatchString(nickname)
 		if !correct {
 			return false
