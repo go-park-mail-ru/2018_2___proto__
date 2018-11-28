@@ -24,12 +24,12 @@ var _ = math.Inf
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
 type User struct {
-	Id                   int64    `protobuf:"varint,1,opt,name=Id,json=id,proto3" json:"Id,omitempty"`
-	Nickname             string   `protobuf:"bytes,2,opt,name=Nickname,json=nickname,proto3" json:"Nickname,omitempty"`
-	Password             string   `protobuf:"bytes,3,opt,name=Password,json=password,proto3" json:"Password,omitempty"`
-	Email                string   `protobuf:"bytes,4,opt,name=Email,json=email,proto3" json:"Email,omitempty"`
-	Fullname             string   `protobuf:"bytes,5,opt,name=Fullname,json=fullname,proto3" json:"Fullname,omitempty"`
-	Avatar               string   `protobuf:"bytes,6,opt,name=Avatar,json=avatar,proto3" json:"Avatar,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=Id,json=id,proto3" json:"id,omitempty"`
+	Nickname             string   `protobuf:"bytes,2,opt,name=Nickname,json=nickname,proto3" json:"nickname,omitempty"`
+	Password             string   `protobuf:"bytes,3,opt,name=Password,json=password,proto3" json:"password,omitempty"`
+	Email                string   `protobuf:"bytes,4,opt,name=Email,json=email,proto3" json:"email,omitempty"`
+	Fullname             string   `protobuf:"bytes,5,opt,name=Fullname,json=fullname,proto3" json:"fullname,omitempty"`
+	Avatar               string   `protobuf:"bytes,6,opt,name=Avatar,json=avatar,proto3" json:"avatar,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -102,7 +102,7 @@ func (m *User) GetAvatar() string {
 }
 
 type SessionId struct {
-	Id                   string   `protobuf:"bytes,1,opt,name=Id,json=id,proto3" json:"Id,omitempty"`
+	Id                   string   `protobuf:"bytes,1,opt,name=Id,json=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -140,9 +140,9 @@ func (m *SessionId) GetId() string {
 }
 
 type Session struct {
-	Id                   string   `protobuf:"bytes,1,opt,name=Id,json=id,proto3" json:"Id,omitempty"`
-	Token                string   `protobuf:"bytes,2,opt,name=Token,json=token,proto3" json:"Token,omitempty"`
-	TTL                  int64    `protobuf:"varint,3,opt,name=TTL,json=tTL,proto3" json:"TTL,omitempty"`
+	Id                   string   `protobuf:"bytes,1,opt,name=Id,json=id,proto3" json:"id,omitempty"`
+	Token                string   `protobuf:"bytes,2,opt,name=Token,json=token,proto3" json:"token,omitempty"`
+	TTL                  int64    `protobuf:"varint,3,opt,name=TTL,json=tTL,proto3" json:"ttl,omitempty"`
 	User                 *User    `protobuf:"bytes,4,opt,name=user,proto3" json:"user,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
