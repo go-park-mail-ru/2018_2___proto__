@@ -24,9 +24,7 @@ type IContext interface {
 
 	Body() ([]byte, error)
 
-	ReadJSON(interface{}) error
-
-	ReadEasyJSON(json.Unmarshaler) error
+	ReadJSON(json.Unmarshaler) error
 
 	Write(data []byte) (int, error)
 
@@ -118,17 +116,7 @@ func (c *Context) Body() ([]byte, error) {
 	return ioutil.ReadAll(c.r.Body)
 }
 
-func (c *Context) ReadJSON(dest interface{}) error {
-	body, err := c.Body()
-
-	if err == nil {
-		err = json.Unmarshal(body, dest)
-	}
-
-	return err
-}
-
-func (c *Context) ReadEasyJSON(entity json.Unmarshaler) error {
+func (c *Context) ReadJSON(entity json.Unmarshaler) error {
 	body, err := c.Body()
 
 	if err == nil {

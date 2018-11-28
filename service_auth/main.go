@@ -37,17 +37,17 @@ func (as *AuthServer) LogOut(ctx context.Context, session *m.Session) (*m.Sessio
 func main() {
 	cfg, err := api.LoadConfigs("./data/cfg.json")
 	if err != nil {
-		panic(err)
+		log.Fatalf("configs error: %v", err)
 	}
 
 	lis, err := net.Listen("tcp", cfg.Port)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("tcp listener error: %v", err)
 	}
 
 	db, err := sql.Open(cfg.DbConnector, cfg.DbConnectionString)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("sql connection error: %v", err)
 	}
 
 	server := &AuthServer{api.NewSessionStorage(db)}

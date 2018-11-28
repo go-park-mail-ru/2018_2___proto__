@@ -79,7 +79,7 @@ func (h *NetworkHandler) WriteResponse(response *api.ApiResponse, ctx router.ICo
 
 func (h *NetworkHandler) Authorize(ctx router.IContext) {
 	user := new(m.User)
-	ctx.ReadEasyJSON(user)
+	ctx.ReadJSON(user)
 
 	//хранилище создают сессию и возвращает нам ид сессии, который записывам в куки
 	serviceContext := context.Background()
@@ -181,7 +181,7 @@ func (h *NetworkHandler) verifyDomain(ctx router.IContext) {
 func (h *NetworkHandler) AddUser(ctx router.IContext) {
 
 	user := new(m.User)
-	ctx.ReadEasyJSON(user)
+	ctx.ReadJSON(user)
 
 	//можно потом добавить валидацию, но не сейчас
 
@@ -192,7 +192,7 @@ func (h *NetworkHandler) AddUser(ctx router.IContext) {
 func (h *NetworkHandler) DeleteUser(ctx router.IContext) {
 
 	user := new(m.User)
-	ctx.ReadEasyJSON(user)
+	ctx.ReadJSON(user)
 
 	h.WriteResponse(h.apiService.Users.Remove(user), ctx)
 }
@@ -209,7 +209,7 @@ func (h *NetworkHandler) UpdateUser(ctx router.IContext) {
 	}
 
 	user := new(m.User)
-	ctx.ReadEasyJSON(user)
+	ctx.ReadJSON(user)
 
 	h.WriteResponse(h.apiService.Users.Update(user), ctx)
 }
@@ -217,7 +217,7 @@ func (h *NetworkHandler) UpdateUser(ctx router.IContext) {
 func (h *NetworkHandler) GetUser(ctx router.IContext) {
 
 	user := new(m.User)
-	ctx.ReadEasyJSON(user)
+	ctx.ReadJSON(user)
 
 	params := ctx.UrlParams()
 
