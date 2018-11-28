@@ -7,14 +7,14 @@ import (
 
 //это конфиги для старой сборки сервера, нужно буддет потом структуру поменять
 type ServerConfig struct {
-	DbConnector        string `json:"dbconnector"`
-	DbConnectionString string `json:"connectionstring"`
-	CorsAllowedHost    string `json:"corsallowedhost"`
-	UseHTTPS           bool   `json:"https"`
-	Port               string `json:"port"`
-	StaticRoot         string `json:"staticroot"`
-	AuthServiceHost    string `json:"authservicehost"`
-	PprofEnabled       bool   `json:"pprofenabled"`
+	DbConnector        string   `json:"dbconnector"`
+	DbConnectionString string   `json:"connectionstring"`
+	CorsAllowedHost    []string `json:"corsallowedhost"`
+	UseHTTPS           bool     `json:"https"`
+	Port               string   `json:"port"`
+	StaticRoot         string   `json:"staticroot"`
+	AuthServiceHost    string   `json:"authservicehost"`
+	PprofEnabled       bool     `json:"pprofenabled"`
 }
 
 func LoadConfigs(path string) (*ServerConfig, error) {
