@@ -95,17 +95,17 @@ func easyjsonA8fbe0d0DecodeProtoGameServerModels1(in *jlexer.Lexer, out *User) {
 			continue
 		}
 		switch key {
-		case "Id":
+		case "id":
 			out.Id = int64(in.Int64())
-		case "Nickname":
+		case "nickname":
 			out.Nickname = string(in.String())
-		case "Password":
+		case "password":
 			out.Password = string(in.String())
-		case "Email":
+		case "email":
 			out.Email = string(in.String())
-		case "Fullname":
+		case "fullname":
 			out.Fullname = string(in.String())
-		case "Avatar":
+		case "avatar":
 			out.Avatar = string(in.String())
 		default:
 			in.SkipRecursive()
@@ -122,7 +122,7 @@ func easyjsonA8fbe0d0EncodeProtoGameServerModels1(out *jwriter.Writer, in User) 
 	first := true
 	_ = first
 	if in.Id != 0 {
-		const prefix string = ",\"Id\":"
+		const prefix string = ",\"id\":"
 		if first {
 			first = false
 			out.RawString(prefix[1:])
@@ -132,7 +132,7 @@ func easyjsonA8fbe0d0EncodeProtoGameServerModels1(out *jwriter.Writer, in User) 
 		out.Int64(int64(in.Id))
 	}
 	if in.Nickname != "" {
-		const prefix string = ",\"Nickname\":"
+		const prefix string = ",\"nickname\":"
 		if first {
 			first = false
 			out.RawString(prefix[1:])
@@ -142,7 +142,7 @@ func easyjsonA8fbe0d0EncodeProtoGameServerModels1(out *jwriter.Writer, in User) 
 		out.String(string(in.Nickname))
 	}
 	if in.Password != "" {
-		const prefix string = ",\"Password\":"
+		const prefix string = ",\"password\":"
 		if first {
 			first = false
 			out.RawString(prefix[1:])
@@ -152,7 +152,7 @@ func easyjsonA8fbe0d0EncodeProtoGameServerModels1(out *jwriter.Writer, in User) 
 		out.String(string(in.Password))
 	}
 	if in.Email != "" {
-		const prefix string = ",\"Email\":"
+		const prefix string = ",\"email\":"
 		if first {
 			first = false
 			out.RawString(prefix[1:])
@@ -162,7 +162,7 @@ func easyjsonA8fbe0d0EncodeProtoGameServerModels1(out *jwriter.Writer, in User) 
 		out.String(string(in.Email))
 	}
 	if in.Fullname != "" {
-		const prefix string = ",\"Fullname\":"
+		const prefix string = ",\"fullname\":"
 		if first {
 			first = false
 			out.RawString(prefix[1:])
@@ -172,7 +172,7 @@ func easyjsonA8fbe0d0EncodeProtoGameServerModels1(out *jwriter.Writer, in User) 
 		out.String(string(in.Fullname))
 	}
 	if in.Avatar != "" {
-		const prefix string = ",\"Avatar\":"
+		const prefix string = ",\"avatar\":"
 		if first {
 			first = false
 			out.RawString(prefix[1:])
@@ -226,7 +226,7 @@ func easyjsonA8fbe0d0DecodeProtoGameServerModels2(in *jlexer.Lexer, out *Session
 			continue
 		}
 		switch key {
-		case "Id":
+		case "id":
 			out.Id = string(in.String())
 		default:
 			in.SkipRecursive()
@@ -243,7 +243,7 @@ func easyjsonA8fbe0d0EncodeProtoGameServerModels2(out *jwriter.Writer, in Sessio
 	first := true
 	_ = first
 	if in.Id != "" {
-		const prefix string = ",\"Id\":"
+		const prefix string = ",\"id\":"
 		if first {
 			first = false
 			out.RawString(prefix[1:])
@@ -297,11 +297,11 @@ func easyjsonA8fbe0d0DecodeProtoGameServerModels3(in *jlexer.Lexer, out *Session
 			continue
 		}
 		switch key {
-		case "Id":
+		case "id":
 			out.Id = string(in.String())
-		case "Token":
+		case "token":
 			out.Token = string(in.String())
-		case "TTL":
+		case "ttl":
 			out.TTL = int64(in.Int64())
 		case "user":
 			if in.IsNull() {
@@ -328,7 +328,7 @@ func easyjsonA8fbe0d0EncodeProtoGameServerModels3(out *jwriter.Writer, in Sessio
 	first := true
 	_ = first
 	if in.Id != "" {
-		const prefix string = ",\"Id\":"
+		const prefix string = ",\"id\":"
 		if first {
 			first = false
 			out.RawString(prefix[1:])
@@ -338,7 +338,7 @@ func easyjsonA8fbe0d0EncodeProtoGameServerModels3(out *jwriter.Writer, in Sessio
 		out.String(string(in.Id))
 	}
 	if in.Token != "" {
-		const prefix string = ",\"Token\":"
+		const prefix string = ",\"token\":"
 		if first {
 			first = false
 			out.RawString(prefix[1:])
@@ -348,7 +348,7 @@ func easyjsonA8fbe0d0EncodeProtoGameServerModels3(out *jwriter.Writer, in Sessio
 		out.String(string(in.Token))
 	}
 	if in.TTL != 0 {
-		const prefix string = ",\"TTL\":"
+		const prefix string = ",\"ttl\":"
 		if first {
 			first = false
 			out.RawString(prefix[1:])

@@ -3,16 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
-	"os"
 	"proto-game-server/api"
 	"proto-game-server/game"
 	"proto-game-server/metrics"
 	"proto-game-server/router"
 	"strconv"
-	"time"
 
 	m "proto-game-server/models"
 
