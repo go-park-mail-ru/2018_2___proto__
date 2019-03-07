@@ -6,7 +6,6 @@ import (
 	"github.com/asaskevich/govalidator"
 )
 
-
 func init() {
 	// custom validator for password
 	govalidator.CustomTypeTagMap.Set("pass", govalidator.CustomTypeValidator(func(i interface{}, o interface{}) bool {
@@ -20,10 +19,7 @@ func init() {
 		regexp := regexp.MustCompile(
 			"^[[[:alnum:]]*[[:graph:]]]*.{8,20}$")
 		correct := regexp.MatchString(password)
-		if !correct {
-			return false
-		}
-		return true
+		return correct
 	}))
 	// "?=.*[A-Z].)(?=.*[!@#$&*_])(?=.*[0-9])(?=.*[a-z]).{8}$"
 	// "^[A-Z]+[0-9]+[a-zA-Z0-9_`!@#$%^&.?()-=+]*.{8,20}$"
