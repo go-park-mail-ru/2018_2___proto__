@@ -3,16 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
-	"os"
 	"proto-game-server/api"
 	"proto-game-server/game"
 	"proto-game-server/metrics"
 	"proto-game-server/router"
 	"strconv"
-	"time"
 
 	m "proto-game-server/models"
 
@@ -79,7 +75,7 @@ func (h *NetworkHandler) WriteResponse(response *api.ApiResponse, ctx router.ICo
 
 func (h *NetworkHandler) Authorize(ctx router.IContext) {
 	user := new(m.User)
-	ctx.ReadEasyJSON(user)
+	ctx.ReadJSON(user)
 
 	//хранилище создают сессию и возвращает нам ид сессии, который записывам в куки
 	serviceContext := context.Background()
@@ -181,7 +177,7 @@ func (h *NetworkHandler) verifyDomain(ctx router.IContext) {
 func (h *NetworkHandler) AddUser(ctx router.IContext) {
 
 	user := new(m.User)
-	ctx.ReadEasyJSON(user)
+	ctx.ReadJSON(user)
 
 	//можно потом добавить валидацию, но не сейчас
 
@@ -192,7 +188,7 @@ func (h *NetworkHandler) AddUser(ctx router.IContext) {
 func (h *NetworkHandler) DeleteUser(ctx router.IContext) {
 
 	user := new(m.User)
-	ctx.ReadEasyJSON(user)
+	ctx.ReadJSON(user)
 
 	h.WriteResponse(h.apiService.Users.Remove(user), ctx)
 }
@@ -209,7 +205,7 @@ func (h *NetworkHandler) UpdateUser(ctx router.IContext) {
 	}
 
 	user := new(m.User)
-	ctx.ReadEasyJSON(user)
+	ctx.ReadJSON(user)
 
 	h.WriteResponse(h.apiService.Users.Update(user), ctx)
 }
@@ -217,7 +213,7 @@ func (h *NetworkHandler) UpdateUser(ctx router.IContext) {
 func (h *NetworkHandler) GetUser(ctx router.IContext) {
 
 	user := new(m.User)
-	ctx.ReadEasyJSON(user)
+	ctx.ReadJSON(user)
 
 	params := ctx.UrlParams()
 
@@ -298,79 +294,6 @@ func (h *NetworkHandler) Logout(ctx router.IContext) {
 		Code:     http.StatusGone,
 		Response: "session terminated"},
 		ctx)
-}
-
-func (h *NetworkHandler) GetStatic(ctx router.IContext) {
-	params := ctx.UrlParams()
-	file := fmt.Sprintf("%v/%v", h.staticRoot, params["file"])
-
-	bytes, err := ioutil.ReadFile(file)
-	if err != nil {
-		ctx.Logger().Error(err)
-		ctx.StatusCode(http.StatusNotFound)
-		return
-	}
-
-	ctx.StatusCode(http.StatusOK)
-	ctx.ContentType("image/png")
-	ctx.Write(bytes)
-}
-
-func (h *NetworkHandler) Upload(ctx router.IContext) {
-
-	r := ctx.Request()
-
-	// the FormFile function takes in the POST input id file
-	file, header, err := r.FormFile("file")
-	if err != nil {
-		h.WriteResponse(&api.ApiResponse{Code: http.StatusBadRequest, Response: err}, ctx)
-		return
-	}
-
-	defer file.Close()
-
-	fileName := fmt.Sprintf("%v-%v", time.Now(), header.Filename)
-	out, err := os.Create(fileName)
-	if err != nil {
-		h.WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError, Response: err}, ctx)
-		return
-	}
-
-	defer out.Close()
-
-	// write the content from POST to the file
-	_, err = io.Copy(out, file)
-	if err != nil {
-		file := &m.File{fileName}
-		h.WriteResponse(&api.ApiResponse{Code: http.StatusBadRequest, Response: file}, ctx)
-		return
-	}
-
-	h.WriteResponse(&api.ApiResponse{Code: http.StatusInternalServerError, Response: err}, ctx)
-}
-
-func (h *NetworkHandler) Panic(ctx router.IContext) {
-	panic("panic")
-}
-
-//function for testing cookie adding
-func (h *NetworkHandler) AddCookie(ctx router.IContext) {
-	//записываем ид сессии в куки
-	//при каждом запросе, требующем аутнетификацию, будет браться данная кука и искаться в хранилище
-	expiration := time.Now().Add(365 * 24 * time.Hour)
-	cookie := &http.Cookie{
-		Name:    "csrftoken",
-		Value:   "abcd",
-		Expires: expiration,
-		Path:    "/"}
-
-	err := ctx.SetCookie(cookie)
-	if err != nil {
-		ctx.Logger().Critical(err)
-	}
-
-	ctx.StatusCode(http.StatusOK)
-	ctx.Write([]byte("COOKIE"))
 }
 
 func (h *NetworkHandler) ConnectPlayer(ctx router.IContext) {

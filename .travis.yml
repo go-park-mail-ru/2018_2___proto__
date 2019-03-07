@@ -1,0 +1,22 @@
+language: go
+env:
+- GO111MODULE=on
+go:
+- 1.11.x
+branches:
+  only:
+  - devel
+git:
+  depth: 1
+
+script:
+- echo travis
+
+install: true
+before_install:
+- openssl aes-256-cbc -K $encrypted_9354925f1db3_key -iv $encrypted_9354925f1db3_iv
+  -in keys.enc -out ./keys -d
+- eval "$(ssh-agent -s)"
+- ssh-keyscan -H api.rasseki.pro >> ~/.ssh/known_hosts
+- chmod 600 ./keys
+- ssh-add ./keys

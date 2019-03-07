@@ -9,7 +9,7 @@ import (
 type ServerConfig struct {
 	DbConnector        string `json:"dbconnector"`
 	DbConnectionString string `json:"connectionstring"`
-	CorsAllowedHost    string `json:"corsallowedhost"`
+	CorsAllowedHost    []string `json:"corsallowedhost"`
 	UseHTTPS           bool   `json:"https"`
 	Port               string `json:"port"`
 	StaticRoot         string `json:"staticroot"`

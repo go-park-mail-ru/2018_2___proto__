@@ -70,12 +70,6 @@ func main() {
 	//урлы для тестирования
 	//для нагрузочного тестирования
 	apiRouter.AddHandlerGet("/loaderio-3b73ee37ac50f8785f6e274aba668913.txt", nh.verifyDomain)
-	//для тестов установки куки
-	apiRouter.AddHandlerGet("/test/cookie", nh.AddCookie)
-	//для тестов отлова паники
-	apiRouter.AddHandlerGet("/test/panic", nh.Panic)
-	//ничего не делает
-	apiRouter.AddHandlerGet("/test", nh.Test)
 	apiRouter.AddHandler("/metrics", nh.Metrics)
 
 	// http.Handle("/metrics", promhttp.Handler())

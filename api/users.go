@@ -2,7 +2,6 @@ package api
 
 import (
 	"database/sql"
-	"errors"
 	"net/http"
 
 	m "proto-game-server/models"
@@ -39,21 +38,6 @@ func ThrowAPIError(code int32, message string) *ApiResponse {
 
 func ValidateUser(user *m.User) (err error) {
 	// this defer catches panics from smtp module
-	defer func() error {
-		if rec := recover(); rec != nil {
-			switch x := rec.(type) {
-			case string:
-				err = errors.New(x)
-
-			case error:
-				err = x
-				
-			default:
-				err = errors.New("Unknown error")
-			}
-		}
-		return err
-	}()
 
 	// user fields validation
 	_, err = validate.ValidateStruct(user)
@@ -71,19 +55,16 @@ func ValidateUser(user *m.User) (err error) {
 }
 
 func (u *UserStorage) Add(user *m.User) *ApiResponse {
-	if err := ValidateUser(user); err != nil {
-		return ThrowAPIError(http.StatusBadRequest, err.Error())
-	}
 
-	result, err := u.db.Exec(
-		"INSERT INTO player(nickname, password, email, fullname) VALUES ($1,$2,$3,$4);",
-		user.Nickname, user.Password, user.Email, user.Fullname)
+	_, err := u.db.Exec(
+		"INSERT INTO player(nickname, password, email) VALUES ($1,$2,$3);",
+		user.Nickname, user.Password, user.Email)
 
 	if err != nil {
 		return ThrowAPIError(http.StatusConflict, err.Error())
 	}
 
-	user.Id, _ = result.LastInsertId()
+	// user.Id, _ = result.LastInsertId()
 	return &ApiResponse{Code: http.StatusCreated, Response: user}
 }
 
